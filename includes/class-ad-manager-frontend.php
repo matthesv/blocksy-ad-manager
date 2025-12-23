@@ -281,10 +281,9 @@ class BAM_Frontend {
             }
             $rendered_content = ob_get_clean();
         } else {
-            // HTML mit Shortcodes - NICHT do_shortcode aufrufen!
-            // WordPress führt do_shortcode automatisch auf the_content aus
-            // Wir geben den rohen Content zurück, damit Borlabs ihn verarbeiten kann
-            $rendered_content = $content;
+            // HTML mit Shortcodes
+            // Shortcodes explizit ausführen (für Borlabs etc.)
+            $rendered_content = do_shortcode($content);
         }
         
         if (empty(trim($rendered_content))) {
@@ -297,6 +296,7 @@ class BAM_Frontend {
             $rendered_content
         );
     }
+
 
 
     
