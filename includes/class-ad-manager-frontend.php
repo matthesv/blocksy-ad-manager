@@ -281,30 +281,14 @@ class BAM_Frontend {
             }
             $rendered_content = ob_get_clean();
         } else {
-            // HTML: Shortcodes verarbeiten
-            // Wichtig: Keine wpautop Filterung, da diese JavaScript zerstören kann
+            // HTML mit Shortcodes - NICHT do_shortcode aufrufen!
+            // WordPress führt do_shortcode automatisch auf the_content aus
+            // Wir geben den rohen Content zurück, damit Borlabs ihn verarbeiten kann
             $rendered_content = $content;
-            
-            // Shortcodes global ausführen
-            $rendered_content = do_shortcode($rendered_content);
-            
-            // Falls Shortcode nicht ausgeführt wurde (Borlabs noch nicht geladen),
-            // als spätere Ausführung markieren
-            if (strpos($rendered_content, '[borlabs-cookie') !== false || 
-                strpos($rendered_content, '[borlabs_cookie') !== false) {
-                // Shortcode wurde nicht verarbeitet - nochmal versuchen
-                global $shortcode_tags;
-                if (isset($shortcode_tags['borlabs-cookie']) || isset($shortcode_tags['borlabs_cookie'])) {
-                    $rendered_content = do_shortcode($rendered_content);
-                }
-            }
         }
         
-        if (empty(trim(strip_tags($rendered_content, '<ins><script><div><iframe><a><img>')))) {
-            // Prüfen ob wirklich leer oder nur Shortcode/Script-Tags
-            if (empty(trim($rendered_content))) {
-                return '';
-            }
+        if (empty(trim($rendered_content))) {
+            return '';
         }
         
         return sprintf(
@@ -313,6 +297,7 @@ class BAM_Frontend {
             $rendered_content
         );
     }
+
 
     
     /**
