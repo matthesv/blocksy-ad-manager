@@ -6,17 +6,34 @@ if (!defined('ABSPATH')) {
 class BAM_Frontend {
     
     public function insert_ads($content) {
-        if (!is_singular() || is_admin()) {
+        // Nur auf Singular-Seiten im Frontend
+        if (!is_singular() || is_admin() || wp_doing_ajax()) {
+            return $content;
+        }
+        
+        // Nicht im Feed
+        if (is_feed()) {
             return $content;
         }
         
         global $post;
+        
+        if (!$post) {
+            return $content;
+        }
         
         $ads = $this->get_active_ads($post);
         
         if (empty($ads)) {
             return $content;
         }
+        
+        // Anzeigen nach Position sortieren (höhere Positionen zuerst einfügen)
+        usort($ads, function($a, $b) {
+            $pos_a = (int) get_post_meta($a->ID, '_bam_paragraph_number', true);
+            $pos_b = (int) get_post_meta($b->ID, '_bam_paragraph_number', true);
+            return $pos_b - $pos_a; // Absteigend sortieren
+        });
         
         foreach ($ads as $ad) {
             $content = $this->insert_ad_into_content($content, $ad);
@@ -29,11 +46,18 @@ class BAM_Frontend {
         $args = [
             'post_type'      => BAM_Post_Type::POST_TYPE,
             'posts_per_page' => -1,
+            'post_status'    => 'publish',
             'meta_query'     => [
+                'relation' => 'OR',
                 [
-                    'key'   => '_bam_is_active',
-                    'value' => '1',
-                ]
+                    'key'     => '_bam_is_active',
+                    'value'   => '1',
+                    'compare' => '=',
+                ],
+                [
+                    'key'     => '_bam_is_active',
+                    'compare' => 'NOT EXISTS',
+                ],
             ],
             'orderby'        => 'menu_order',
             'order'          => 'ASC',
@@ -52,34 +76,45 @@ class BAM_Frontend {
     }
     
     private function should_display_ad($ad, $current_post) {
-        // Post Type Check
-        $allowed_post_types = get_post_meta($ad->ID, '_bam_post_types', true) ?: [];
-        if (!empty($allowed_post_types) && !in_array($current_post->post_type, $allowed_post_types)) {
+        // Aktiv-Check
+        $is_active = get_post_meta($ad->ID, '_bam_is_active', true);
+        if ($is_active === '0') {
             return false;
+        }
+        
+        // Post Type Check
+        $allowed_post_types = get_post_meta($ad->ID, '_bam_post_types', true);
+        if (!empty($allowed_post_types) && is_array($allowed_post_types)) {
+            if (!in_array($current_post->post_type, $allowed_post_types)) {
+                return false;
+            }
         }
         
         // Excluded IDs Check
         $exclude_ids = get_post_meta($ad->ID, '_bam_exclude_ids', true);
         if (!empty($exclude_ids)) {
             $excluded = array_map('trim', explode(',', $exclude_ids));
+            $excluded = array_map('intval', $excluded);
             if (in_array($current_post->ID, $excluded)) {
                 return false;
             }
         }
         
-        // Categories Check
-        $allowed_categories = get_post_meta($ad->ID, '_bam_categories', true) ?: [];
-        if (!empty($allowed_categories)) {
+        // Categories Check (nur für Posts)
+        $allowed_categories = get_post_meta($ad->ID, '_bam_categories', true);
+        if (!empty($allowed_categories) && is_array($allowed_categories) && $current_post->post_type === 'post') {
             $post_categories = wp_get_post_categories($current_post->ID);
+            $allowed_categories = array_map('intval', $allowed_categories);
             if (empty(array_intersect($allowed_categories, $post_categories))) {
                 return false;
             }
         }
         
-        // Tags Check
-        $allowed_tags = get_post_meta($ad->ID, '_bam_tags', true) ?: [];
-        if (!empty($allowed_tags)) {
+        // Tags Check (nur für Posts)
+        $allowed_tags = get_post_meta($ad->ID, '_bam_tags', true);
+        if (!empty($allowed_tags) && is_array($allowed_tags) && $current_post->post_type === 'post') {
             $post_tags = wp_get_post_tags($current_post->ID, ['fields' => 'ids']);
+            $allowed_tags = array_map('intval', $allowed_tags);
             if (empty(array_intersect($allowed_tags, $post_tags))) {
                 return false;
             }
@@ -90,8 +125,13 @@ class BAM_Frontend {
     
     private function insert_ad_into_content($content, $ad) {
         $ad_html = $this->render_ad($ad);
+        
+        if (empty($ad_html)) {
+            return $content;
+        }
+        
         $position = get_post_meta($ad->ID, '_bam_position', true) ?: 'after_paragraph';
-        $number = get_post_meta($ad->ID, '_bam_paragraph_number', true) ?: 2;
+        $number = (int) (get_post_meta($ad->ID, '_bam_paragraph_number', true) ?: 2);
         
         switch ($position) {
             case 'before_content':
@@ -103,7 +143,7 @@ class BAM_Frontend {
                 break;
                 
             case 'after_paragraph':
-                $content = $this->insert_after_element($content, $ad_html, '</p>', $number);
+                $content = $this->insert_after_paragraph($content, $ad_html, $number);
                 break;
                 
             case 'after_heading':
@@ -113,25 +153,42 @@ class BAM_Frontend {
             case 'middle_content':
                 $content = $this->insert_in_middle($content, $ad_html);
                 break;
+                
+            default:
+                $content = $content . $ad_html;
         }
         
         return $content;
     }
     
-    private function insert_after_element($content, $ad_html, $tag, $number) {
-        $parts = explode($tag, $content);
+    /**
+     * Fügt Anzeige nach dem X. Absatz ein
+     */
+    private function insert_after_paragraph($content, $ad_html, $paragraph_number) {
+        // Finde alle </p> Tags (auch mit Gutenberg-Kommentaren)
+        $closing_p = '</p>';
+        $paragraphs = explode($closing_p, $content);
         
-        if (count($parts) < $number) {
+        // Wenn nicht genug Absätze vorhanden, am Ende einfügen
+        $total_paragraphs = count($paragraphs) - 1; // -1 weil explode ein leeres Element am Ende erzeugt
+        
+        if ($total_paragraphs < $paragraph_number) {
             return $content . $ad_html;
         }
         
+        // Content neu zusammenbauen
         $output = '';
-        for ($i = 0; $i < count($parts); $i++) {
-            $output .= $parts[$i];
-            if ($i < count($parts) - 1) {
-                $output .= $tag;
+        
+        for ($i = 0; $i < count($paragraphs); $i++) {
+            $output .= $paragraphs[$i];
+            
+            // Nicht nach dem letzten Element
+            if ($i < count($paragraphs) - 1) {
+                $output .= $closing_p;
             }
-            if ($i + 1 === $number) {
+            
+            // Nach dem gewünschten Absatz einfügen
+            if ($i + 1 === $paragraph_number) {
                 $output .= $ad_html;
             }
         }
@@ -139,35 +196,69 @@ class BAM_Frontend {
         return $output;
     }
     
-    private function insert_after_heading($content, $ad_html, $number) {
-        $pattern = '/<\/h[1-6]>/i';
-        $parts = preg_split($pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_OFFSET_CAPTURE);
+    /**
+     * Fügt Anzeige nach der X. Überschrift ein
+     */
+    private function insert_after_heading($content, $ad_html, $heading_number) {
+        // Pattern für alle Überschriften (h1-h6)
+        $pattern = '/(<\/h[1-6]>)/i';
         
+        // Alle Überschriften finden
         preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE);
         
-        if (count($matches[0]) < $number) {
+        if (empty($matches[0]) || count($matches[0]) < $heading_number) {
             return $content . $ad_html;
         }
         
-        $insert_pos = $matches[0][$number - 1][1] + strlen($matches[0][$number - 1][0]);
+        // Position nach der X. Überschrift
+        $match = $matches[0][$heading_number - 1];
+        $insert_position = $match[1] + strlen($match[0]);
         
-        return substr($content, 0, $insert_pos) . $ad_html . substr($content, $insert_pos);
+        // Content aufteilen und Anzeige einfügen
+        $before = substr($content, 0, $insert_position);
+        $after = substr($content, $insert_position);
+        
+        return $before . $ad_html . $after;
     }
     
+    /**
+     * Fügt Anzeige in der Mitte des Contents ein
+     */
     private function insert_in_middle($content, $ad_html) {
-        $parts = explode('</p>', $content);
-        $middle = floor(count($parts) / 2);
+        $closing_p = '</p>';
+        $paragraphs = explode($closing_p, $content);
+        $total = count($paragraphs) - 1;
         
-        return $this->insert_after_element($content, $ad_html, '</p>', $middle);
+        if ($total < 2) {
+            return $content . $ad_html;
+        }
+        
+        $middle = (int) ceil($total / 2);
+        
+        return $this->insert_after_paragraph($content, $ad_html, $middle);
     }
     
-    private function render_ad($ad) {
+    /**
+     * Rendert eine einzelne Anzeige
+     */
+    public function render_ad($ad) {
         $content = get_post_meta($ad->ID, '_bam_ad_content', true);
+        
+        if (empty($content)) {
+            return '';
+        }
+        
         $content_type = get_post_meta($ad->ID, '_bam_content_type', true) ?: 'html';
-        $devices = get_post_meta($ad->ID, '_bam_devices', true) ?: ['desktop', 'tablet', 'mobile'];
+        $devices = get_post_meta($ad->ID, '_bam_devices', true);
+        
+        // Standardwert für Geräte
+        if (empty($devices) || !is_array($devices)) {
+            $devices = ['desktop', 'tablet', 'mobile'];
+        }
         
         // Device Classes
-        $device_classes = [];
+        $device_classes = ['bam-ad-container', 'bam-ad-' . $ad->ID];
+        
         if (!in_array('desktop', $devices)) {
             $device_classes[] = 'bam-hide-desktop';
         }
@@ -178,31 +269,52 @@ class BAM_Frontend {
             $device_classes[] = 'bam-hide-mobile';
         }
         
-        $class_string = implode(' ', $device_classes);
-        
         // Content verarbeiten
         if ($content_type === 'php') {
             ob_start();
-            eval($content);
+            try {
+                eval('?>' . $content);
+            } catch (Exception $e) {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    echo '<!-- BAM Error: ' . esc_html($e->getMessage()) . ' -->';
+                }
+            }
             $rendered_content = ob_get_clean();
         } else {
-            // Shortcodes verarbeiten
+            // HTML: Shortcodes verarbeiten
             $rendered_content = do_shortcode($content);
         }
         
+        if (empty(trim($rendered_content))) {
+            return '';
+        }
+        
         return sprintf(
-            '<div class="bam-ad-container bam-ad-%d %s">%s</div>',
-            $ad->ID,
-            esc_attr($class_string),
+            '<div class="%s">%s</div>',
+            esc_attr(implode(' ', $device_classes)),
             $rendered_content
         );
     }
     
+    /**
+     * CSS für Geräte-Sichtbarkeit
+     */
     public function add_device_styles() {
+        // Nur wenn Anzeigen existieren
+        $has_ads = get_posts([
+            'post_type'      => BAM_Post_Type::POST_TYPE,
+            'posts_per_page' => 1,
+            'post_status'    => 'publish',
+            'fields'         => 'ids',
+        ]);
+        
+        if (empty($has_ads)) {
+            return;
+        }
         ?>
-        <style>
+        <style id="bam-device-styles">
             .bam-ad-container {
-                margin: 20px 0;
+                margin: 1.5em 0;
                 clear: both;
             }
             
