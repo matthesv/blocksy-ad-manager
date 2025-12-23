@@ -1,0 +1,26 @@
+.bam-metabox-content,
+.bam-metabox-position,
+.bam-metabox-targeting,
+.bam-metabox-devices {
+    padding: 10px 0;
+}
+
+.bam-metabox-content textarea {
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.bam-metabox-targeting select {
+    min-height: 100px;
+}
+
+.bam-metabox-devices .description {
+    color: #666;
+    font-size: 11px;
+}
+
+#bam_paragraph_settings {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 4px;
+}
