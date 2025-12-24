@@ -8,6 +8,7 @@ class BAM_Loader {
     private $post_type;
     private $admin;
     private $frontend;
+    private $anchor;
     
     public function __construct() {
         $this->load_dependencies();
@@ -18,10 +19,12 @@ class BAM_Loader {
         require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-post-type.php';
         require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-admin.php';
         require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-frontend.php';
+        require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-anchor.php';
         
         $this->post_type = new BAM_Post_Type();
         $this->admin = new BAM_Admin();
         $this->frontend = new BAM_Frontend();
+        $this->anchor = new BAM_Anchor();
     }
     
     public function run() {
@@ -38,5 +41,8 @@ class BAM_Loader {
         // Frontend Hooks
         add_filter('the_content', [$this->frontend, 'insert_ads'], 20);
         add_action('wp_head', [$this->frontend, 'add_device_styles']);
+        
+        // Anchor Ads
+        $this->anchor->init();
     }
 }

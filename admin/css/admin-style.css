@@ -1,3 +1,7 @@
+/* ==========================================================================
+   Base Metabox Styles
+   ========================================================================== */
+
 .bam-metabox-content,
 .bam-metabox-position,
 .bam-metabox-targeting,
@@ -19,8 +23,79 @@
     font-size: 11px;
 }
 
+/* ==========================================================================
+   Position Settings Cards
+   ========================================================================== */
+
+.bam-settings-card {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    margin-top: 10px;
+}
+
+.bam-settings-card h4 {
+    margin: 0 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px;
+    color: #1d2327;
+}
+
+.bam-settings-card p {
+    margin-bottom: 12px;
+}
+
+.bam-settings-card label strong {
+    display: inline-block;
+    margin-bottom: 5px;
+}
+
+.bam-settings-card .description {
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* ==========================================================================
+   Paragraph Settings (Legacy)
+   ========================================================================== */
+
 #bam_paragraph_settings {
     background: #f9f9f9;
     padding: 10px;
     border-radius: 4px;
+}
+
+/* ==========================================================================
+   Position Dropdown Styling
+   ========================================================================== */
+
+#bam_position optgroup {
+    font-weight: 600;
+    color: #1d2327;
+}
+
+#bam_position option {
+    padding: 5px;
+}
+
+/* ==========================================================================
+   Responsive Improvements
+   ========================================================================== */
+
+@media screen and (max-width: 782px) {
+    .bam-settings-card {
+        padding: 12px;
+    }
+    
+    .bam-settings-card input[type="number"] {
+        width: 100% !important;
+        margin-bottom: 8px;
+    }
+    
+    .bam-settings-card select {
+        width: 100% !important;
+    }
 }

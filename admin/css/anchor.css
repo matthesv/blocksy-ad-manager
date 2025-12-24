@@ -1,0 +1,261 @@
+/**
+ * Anchor Ad Styles
+ * 
+ * @package Blocksy_Ad_Manager
+ * @since 1.1.0
+ */
+
+/* ==========================================================================
+   Anchor Ad Container
+   ========================================================================== */
+
+.bam-anchor-ad {
+    --bam-anchor-max-height: 150px;
+    --bam-anchor-bg: #ffffff;
+    --bam-anchor-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    --bam-anchor-border: #e5e7eb;
+    --bam-anchor-control-bg: #f3f4f6;
+    --bam-anchor-control-hover: #e5e7eb;
+    --bam-anchor-control-text: #374151;
+    --bam-anchor-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: var(--bam-anchor-bg);
+    box-shadow: var(--bam-anchor-shadow);
+    border-top: 1px solid var(--bam-anchor-border);
+    transform: translateY(0);
+    transition: transform var(--bam-anchor-transition);
+}
+
+/* Minimized State */
+.bam-anchor-ad.bam-minimized {
+    transform: translateY(calc(100% - 44px));
+}
+
+.bam-anchor-ad.bam-minimized .bam-anchor-content {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.bam-anchor-ad.bam-minimized .bam-icon-minimize {
+    display: none;
+}
+
+.bam-anchor-ad.bam-minimized .bam-icon-expand {
+    display: inline;
+}
+
+/* Closed State */
+.bam-anchor-ad.bam-closed {
+    transform: translateY(100%);
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   Controls Bar
+   ========================================================================== */
+
+.bam-anchor-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--bam-anchor-control-bg);
+    border-bottom: 1px solid var(--bam-anchor-border);
+    position: relative;
+}
+
+.bam-anchor-minimize,
+.bam-anchor-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    background: var(--bam-anchor-bg);
+    color: var(--bam-anchor-control-text);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.bam-anchor-minimize:hover,
+.bam-anchor-close:hover {
+    background: var(--bam-anchor-control-hover);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.bam-anchor-minimize:focus,
+.bam-anchor-close:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.bam-anchor-close {
+    position: absolute;
+    right: 16px;
+    padding: 6px 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.bam-anchor-close:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.bam-icon-expand {
+    display: none;
+}
+
+/* ==========================================================================
+   Content Area
+   ========================================================================== */
+
+.bam-anchor-content {
+    max-height: var(--bam-anchor-max-height);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px;
+    transition: opacity var(--bam-anchor-transition), 
+                visibility var(--bam-anchor-transition);
+}
+
+/* Custom Scrollbar */
+.bam-anchor-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.bam-anchor-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.bam-anchor-content::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.bam-anchor-content::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Content styling */
+.bam-anchor-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.bam-anchor-content a {
+    display: block;
+}
+
+/* ==========================================================================
+   Responsive Styles
+   ========================================================================== */
+
+/* Desktop */
+@media (min-width: 1025px) {
+    .bam-anchor-ad {
+        left: 10%;
+        right: 10%;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .bam-hide-desktop.bam-anchor-ad {
+        display: none !important;
+    }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .bam-anchor-ad {
+        left: 5%;
+        right: 5%;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .bam-hide-tablet.bam-anchor-ad {
+        display: none !important;
+    }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+    .bam-anchor-ad {
+        border-radius: 0;
+    }
+    
+    .bam-anchor-controls {
+        padding: 6px 12px;
+    }
+    
+    .bam-anchor-content {
+        padding: 12px;
+    }
+    
+    .bam-hide-mobile.bam-anchor-ad {
+        display: none !important;
+    }
+}
+
+/* ==========================================================================
+   Animation
+   ========================================================================== */
+
+@keyframes bam-slide-up {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.bam-anchor-ad {
+    animation: bam-slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ==========================================================================
+   Dark Mode Support
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+    .bam-anchor-ad {
+        --bam-anchor-bg: #1f2937;
+        --bam-anchor-border: #374151;
+        --bam-anchor-control-bg: #111827;
+        --bam-anchor-control-hover: #374151;
+        --bam-anchor-control-text: #f3f4f6;
+        --bam-anchor-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    }
+    
+    .bam-anchor-content::-webkit-scrollbar-track {
+        background: #374151;
+    }
+    
+    .bam-anchor-content::-webkit-scrollbar-thumb {
+        background: #6b7280;
+    }
+}
+
+/* Blocksy Dark Mode Class */
+[data-color-mode="dark"] .bam-anchor-ad,
+.dark-mode .bam-anchor-ad {
+    --bam-anchor-bg: #1f2937;
+    --bam-anchor-border: #374151;
+    --bam-anchor-control-bg: #111827;
+    --bam-anchor-control-hover: #374151;
+    --bam-anchor-control-text: #f3f4f6;
+    --bam-anchor-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+}

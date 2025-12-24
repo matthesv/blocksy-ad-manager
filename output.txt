@@ -1,0 +1,939 @@
+Projekt:Wordpress Plugin Blocksy Ad Manager
+Deine Rolle: Du hast diese Anwendung für mich programmiert. Bitte unterstütze mich bei der Optimierung und Erweiterung des Codes.
+Anforderungen:
+1. Vollständige Dateien bereitstellen:
+- Wenn Änderungen an einer Datei notwendig sind, gib mir bitte stets die vollständige Datei zurück.
+2. Sinnvolle Architektur bedenken:
+- Nicht zu viel Code in einer Datei, damit der Code gut gewartet werden kann.
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\blocksy-ad-manager.php 
+ 
+<?php
+/**
+ * Plugin Name: Blocksy Ad Manager
+ * Plugin URI: https://github.com/matthesv/blocksy-ad-manager
+ * Description: Flexibles Anzeigen-Management für Blocksy Theme
+ * Version: 1.0.6
+ * Author: Matthes V.
+ * Author URI: https://github.com/matthesv
+ * Text Domain: blocksy-ad-manager
+ * Requires at least: 5.8
+ * Requires PHP: 7.4
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+define('BAM_VERSION', '1.0.6');
+define('BAM_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('BAM_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('BAM_PLUGIN_FILE', __FILE__);
+
+// =========================================
+// PLUGIN UPDATE CHECKER (GitHub)
+// =========================================
+if (file_exists(BAM_PLUGIN_DIR . 'includes/plugin-update-checker/plugin-update-checker.php')) {
+    require_once BAM_PLUGIN_DIR . 'includes/plugin-update-checker/plugin-update-checker.php';
+    
+    $bamUpdateChecker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+        'https://github.com/matthesv/blocksy-ad-manager/',
+        BAM_PLUGIN_FILE,
+        'blocksy-ad-manager'
+    );
+    
+    $bamUpdateChecker->setBranch('main');
+}
+
+// Autoloader
+spl_autoload_register(function ($class) {
+    $prefix = 'BAM_';
+    if (strpos($class, $prefix) !== 0) {
+        return;
+    }
+    
+    $class_name = str_replace($prefix, '', $class);
+    $class_name = strtolower(str_replace('_', '-', $class_name));
+    $file = BAM_PLUGIN_DIR . 'includes/class-ad-manager-' . $class_name . '.php';
+    
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});
+
+// Plugin initialisieren
+function bam_init() {
+    $loader = new BAM_Loader();
+    $loader->run();
+}
+add_action('plugins_loaded', 'bam_init');
+
+// Aktivierung
+register_activation_hook(__FILE__, function() {
+    flush_rewrite_rules();
+});
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\admin\css\admin-style.css 
+ 
+.bam-metabox-content,
+.bam-metabox-position,
+.bam-metabox-targeting,
+.bam-metabox-devices {
+    padding: 10px 0;
+}
+
+.bam-metabox-content textarea {
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.bam-metabox-targeting select {
+    min-height: 100px;
+}
+
+.bam-metabox-devices .description {
+    color: #666;
+    font-size: 11px;
+}
+
+#bam_paragraph_settings {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 4px;
+}
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\admin\js\admin-script.js 
+ 
+jQuery(document).ready(function($) {
+    
+    // Position-abhängige Felder ein-/ausblenden
+    function toggleParagraphSettings() {
+        var position = $('#bam_position').val();
+        var showSettings = ['after_paragraph', 'after_heading'].includes(position);
+        
+        $('#bam_paragraph_settings').toggle(showSettings);
+    }
+    
+    $('#bam_position').on('change', toggleParagraphSettings);
+    toggleParagraphSettings();
+    
+    // Syntax-Highlighting Hinweis für PHP
+    $('input[name="bam_content_type"]').on('change', function() {
+        var isPHP = $(this).val() === 'php';
+        if (isPHP) {
+            $('#bam_ad_content').attr('placeholder', 
+                'echo "Hallo Welt";\n// PHP Code ohne <?php Tags');
+        } else {
+            $('#bam_ad_content').attr('placeholder', 
+                '<div class="my-ad">\n  [my_shortcode]\n</div>');
+        }
+    });
+});
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\includes\class-ad-manager-admin.php 
+ 
+<?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class BAM_Admin {
+    
+    public function enqueue_scripts($hook) {
+        global $post_type;
+        
+        if ($post_type !== BAM_Post_Type::POST_TYPE) {
+            return;
+        }
+        
+        wp_enqueue_style(
+            'bam-admin-style',
+            BAM_PLUGIN_URL . 'admin/css/admin-style.css',
+            [],
+            BAM_VERSION
+        );
+        
+        wp_enqueue_script(
+            'bam-admin-script',
+            BAM_PLUGIN_URL . 'admin/js/admin-script.js',
+            ['jquery'],
+            BAM_VERSION,
+            true
+        );
+    }
+    
+    public function add_meta_boxes() {
+        add_meta_box(
+            'bam_ad_content',
+            __('Anzeigen-Inhalt', 'blocksy-ad-manager'),
+            [$this, 'render_content_metabox'],
+            BAM_Post_Type::POST_TYPE,
+            'normal',
+            'high'
+        );
+        
+        add_meta_box(
+            'bam_ad_position',
+            __('Position & Platzierung', 'blocksy-ad-manager'),
+            [$this, 'render_position_metabox'],
+            BAM_Post_Type::POST_TYPE,
+            'normal',
+            'high'
+        );
+        
+        add_meta_box(
+            'bam_ad_targeting',
+            __('Targeting', 'blocksy-ad-manager'),
+            [$this, 'render_targeting_metabox'],
+            BAM_Post_Type::POST_TYPE,
+            'side',
+            'default'
+        );
+        
+        add_meta_box(
+            'bam_ad_devices',
+            __('Geräte-Sichtbarkeit', 'blocksy-ad-manager'),
+            [$this, 'render_devices_metabox'],
+            BAM_Post_Type::POST_TYPE,
+            'side',
+            'default'
+        );
+    }
+    
+    public function render_content_metabox($post) {
+        wp_nonce_field('bam_save_meta', 'bam_meta_nonce');
+        
+        $content = get_post_meta($post->ID, '_bam_ad_content', true);
+        $content_type = get_post_meta($post->ID, '_bam_content_type', true) ?: 'html';
+        ?>
+        <div class="bam-metabox-content">
+            <p>
+                <label><strong><?php _e('Inhaltstyp:', 'blocksy-ad-manager'); ?></strong></label>
+            </p>
+            <p>
+                <label>
+                    <input type="radio" name="bam_content_type" value="html" <?php checked($content_type, 'html'); ?>>
+                    <?php _e('HTML / Shortcodes', 'blocksy-ad-manager'); ?>
+                </label>
+                <label style="margin-left: 20px;">
+                    <input type="radio" name="bam_content_type" value="php" <?php checked($content_type, 'php'); ?>>
+                    <?php _e('PHP Code', 'blocksy-ad-manager'); ?>
+                </label>
+            </p>
+            <p class="description">
+                <?php _e('Bei PHP-Code: Ohne öffnende/schließende PHP-Tags eingeben.', 'blocksy-ad-manager'); ?>
+            </p>
+            <p>
+                <textarea name="bam_ad_content" id="bam_ad_content" rows="10" style="width:100%;"><?php echo esc_textarea($content); ?></textarea>
+            </p>
+        </div>
+        <?php
+    }
+    
+    public function render_position_metabox($post) {
+        $position = get_post_meta($post->ID, '_bam_position', true) ?: 'after_paragraph';
+        $paragraph_number = get_post_meta($post->ID, '_bam_paragraph_number', true) ?: 2;
+        ?>
+        <div class="bam-metabox-position">
+            <p>
+                <label><strong><?php _e('Position:', 'blocksy-ad-manager'); ?></strong></label>
+            </p>
+            <select name="bam_position" id="bam_position" style="width:100%;">
+                <option value="after_paragraph" <?php selected($position, 'after_paragraph'); ?>>
+                    <?php _e('Nach Absatz X', 'blocksy-ad-manager'); ?>
+                </option>
+                <option value="before_content" <?php selected($position, 'before_content'); ?>>
+                    <?php _e('Vor dem Inhalt', 'blocksy-ad-manager'); ?>
+                </option>
+                <option value="after_content" <?php selected($position, 'after_content'); ?>>
+                    <?php _e('Nach dem Inhalt', 'blocksy-ad-manager'); ?>
+                </option>
+                <option value="after_heading" <?php selected($position, 'after_heading'); ?>>
+                    <?php _e('Nach Überschrift X', 'blocksy-ad-manager'); ?>
+                </option>
+                <option value="middle_content" <?php selected($position, 'middle_content'); ?>>
+                    <?php _e('Mitte des Inhalts', 'blocksy-ad-manager'); ?>
+                </option>
+            </select>
+            
+            <div id="bam_paragraph_settings" style="margin-top:15px;">
+                <label>
+                    <strong><?php _e('Nach Element Nummer:', 'blocksy-ad-manager'); ?></strong>
+                </label>
+                <input type="number" name="bam_paragraph_number" value="<?php echo esc_attr($paragraph_number); ?>" min="1" max="50" style="width:80px;">
+            </div>
+        </div>
+        <?php
+    }
+    
+    public function render_targeting_metabox($post) {
+        $post_types = get_post_meta($post->ID, '_bam_post_types', true) ?: ['post'];
+        $categories = get_post_meta($post->ID, '_bam_categories', true) ?: [];
+        $tags = get_post_meta($post->ID, '_bam_tags', true) ?: [];
+        $exclude_ids = get_post_meta($post->ID, '_bam_exclude_ids', true) ?: '';
+        
+        $available_post_types = get_post_types(['public' => true], 'objects');
+        $available_categories = get_categories(['hide_empty' => false]);
+        $available_tags = get_tags(['hide_empty' => false]);
+        ?>
+        <div class="bam-metabox-targeting">
+            <p><strong><?php _e('Seitentypen:', 'blocksy-ad-manager'); ?></strong></p>
+            <?php foreach ($available_post_types as $pt): ?>
+                <?php if ($pt->name === BAM_Post_Type::POST_TYPE) continue; ?>
+                <label style="display:block; margin-bottom:5px;">
+                    <input type="checkbox" name="bam_post_types[]" value="<?php echo esc_attr($pt->name); ?>" 
+                        <?php checked(in_array($pt->name, (array)$post_types)); ?>>
+                    <?php echo esc_html($pt->label); ?>
+                </label>
+            <?php endforeach; ?>
+            
+            <hr>
+            
+            <p><strong><?php _e('Kategorien (leer = alle):', 'blocksy-ad-manager'); ?></strong></p>
+            <select name="bam_categories[]" multiple style="width:100%; height:100px;">
+                <?php foreach ($available_categories as $cat): ?>
+                    <option value="<?php echo esc_attr($cat->term_id); ?>" 
+                        <?php selected(in_array($cat->term_id, (array)$categories)); ?>>
+                        <?php echo esc_html($cat->name); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            
+            <hr>
+            
+            <p><strong><?php _e('Tags (leer = alle):', 'blocksy-ad-manager'); ?></strong></p>
+            <select name="bam_tags[]" multiple style="width:100%; height:100px;">
+                <?php foreach ($available_tags as $tag): ?>
+                    <option value="<?php echo esc_attr($tag->term_id); ?>" 
+                        <?php selected(in_array($tag->term_id, (array)$tags)); ?>>
+                        <?php echo esc_html($tag->name); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            
+            <hr>
+            
+            <p><strong><?php _e('Post-IDs ausschließen:', 'blocksy-ad-manager'); ?></strong></p>
+            <input type="text" name="bam_exclude_ids" value="<?php echo esc_attr($exclude_ids); ?>" style="width:100%;" placeholder="1,2,3">
+        </div>
+        <?php
+    }
+    
+    public function render_devices_metabox($post) {
+        $devices = get_post_meta($post->ID, '_bam_devices', true) ?: ['desktop', 'tablet', 'mobile'];
+        $is_active = get_post_meta($post->ID, '_bam_is_active', true);
+        $is_active = ($is_active === '' || $is_active === '1') ? '1' : '0';
+        ?>
+        <div class="bam-metabox-devices">
+            <p>
+                <label>
+                    <input type="checkbox" name="bam_is_active" value="1" <?php checked($is_active, '1'); ?>>
+                    <strong><?php _e('Anzeige aktiv', 'blocksy-ad-manager'); ?></strong>
+                </label>
+            </p>
+            
+            <hr>
+            
+            <p><strong><?php _e('Anzeigen auf:', 'blocksy-ad-manager'); ?></strong></p>
+            
+            <label style="display:block; margin-bottom:8px;">
+                <input type="checkbox" name="bam_devices[]" value="desktop" 
+                    <?php checked(in_array('desktop', (array)$devices)); ?>>
+                🖥️ <?php _e('Desktop', 'blocksy-ad-manager'); ?>
+                <span class="description">(> 1024px)</span>
+            </label>
+            
+            <label style="display:block; margin-bottom:8px;">
+                <input type="checkbox" name="bam_devices[]" value="tablet" 
+                    <?php checked(in_array('tablet', (array)$devices)); ?>>
+                📱 <?php _e('Tablet', 'blocksy-ad-manager'); ?>
+                <span class="description">(768px - 1024px)</span>
+            </label>
+            
+            <label style="display:block; margin-bottom:8px;">
+                <input type="checkbox" name="bam_devices[]" value="mobile" 
+                    <?php checked(in_array('mobile', (array)$devices)); ?>>
+                📱 <?php _e('Mobile', 'blocksy-ad-manager'); ?>
+                <span class="description">(< 768px)</span>
+            </label>
+        </div>
+        <?php
+    }
+    
+    public function save_meta_boxes($post_id, $post) {
+        // Überprüfungen
+        if (!isset($_POST['bam_meta_nonce']) || 
+            !wp_verify_nonce($_POST['bam_meta_nonce'], 'bam_save_meta')) {
+            return;
+        }
+        
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+        
+        if ($post->post_type !== BAM_Post_Type::POST_TYPE) {
+            return;
+        }
+        
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+        
+        // Content speichern (ohne Sanitizing für PHP/HTML)
+        if (isset($_POST['bam_ad_content'])) {
+            update_post_meta($post_id, '_bam_ad_content', $_POST['bam_ad_content']);
+        }
+        
+        // Content Type
+        if (isset($_POST['bam_content_type'])) {
+            update_post_meta($post_id, '_bam_content_type', sanitize_text_field($_POST['bam_content_type']));
+        }
+        
+        // Position
+        if (isset($_POST['bam_position'])) {
+            update_post_meta($post_id, '_bam_position', sanitize_text_field($_POST['bam_position']));
+        }
+        
+        if (isset($_POST['bam_paragraph_number'])) {
+            update_post_meta($post_id, '_bam_paragraph_number', absint($_POST['bam_paragraph_number']));
+        }
+        
+        // Targeting
+        $post_types = isset($_POST['bam_post_types']) ? array_map('sanitize_text_field', $_POST['bam_post_types']) : [];
+        update_post_meta($post_id, '_bam_post_types', $post_types);
+        
+        $categories = isset($_POST['bam_categories']) ? array_map('absint', $_POST['bam_categories']) : [];
+        update_post_meta($post_id, '_bam_categories', $categories);
+        
+        $tags = isset($_POST['bam_tags']) ? array_map('absint', $_POST['bam_tags']) : [];
+        update_post_meta($post_id, '_bam_tags', $tags);
+        
+        if (isset($_POST['bam_exclude_ids'])) {
+            update_post_meta($post_id, '_bam_exclude_ids', sanitize_text_field($_POST['bam_exclude_ids']));
+        }
+        
+        // Devices
+        $devices = isset($_POST['bam_devices']) ? array_map('sanitize_text_field', $_POST['bam_devices']) : [];
+        update_post_meta($post_id, '_bam_devices', $devices);
+        
+        // Active Status
+        $is_active = isset($_POST['bam_is_active']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_is_active', $is_active);
+    }
+}
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\includes\class-ad-manager-frontend.php 
+ 
+<?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class BAM_Frontend {
+    
+    public function insert_ads($content) {
+        // Nur auf Singular-Seiten im Frontend
+        if (!is_singular() || is_admin() || wp_doing_ajax()) {
+            return $content;
+        }
+        
+        // Nicht im Feed
+        if (is_feed()) {
+            return $content;
+        }
+        
+        global $post;
+        
+        if (!$post) {
+            return $content;
+        }
+        
+        $ads = $this->get_active_ads($post);
+        
+        if (empty($ads)) {
+            return $content;
+        }
+        
+        // Anzeigen nach Position sortieren (höhere Positionen zuerst einfügen)
+        usort($ads, function($a, $b) {
+            $pos_a = (int) get_post_meta($a->ID, '_bam_paragraph_number', true);
+            $pos_b = (int) get_post_meta($b->ID, '_bam_paragraph_number', true);
+            return $pos_b - $pos_a; // Absteigend sortieren
+        });
+        
+        foreach ($ads as $ad) {
+            $content = $this->insert_ad_into_content($content, $ad);
+        }
+        
+        return $content;
+    }
+    
+    private function get_active_ads($post) {
+        $args = [
+            'post_type'      => BAM_Post_Type::POST_TYPE,
+            'posts_per_page' => -1,
+            'post_status'    => 'publish',
+            'meta_query'     => [
+                'relation' => 'OR',
+                [
+                    'key'     => '_bam_is_active',
+                    'value'   => '1',
+                    'compare' => '=',
+                ],
+                [
+                    'key'     => '_bam_is_active',
+                    'compare' => 'NOT EXISTS',
+                ],
+            ],
+            'orderby'        => 'menu_order',
+            'order'          => 'ASC',
+        ];
+        
+        $ads = get_posts($args);
+        $filtered_ads = [];
+        
+        foreach ($ads as $ad) {
+            if ($this->should_display_ad($ad, $post)) {
+                $filtered_ads[] = $ad;
+            }
+        }
+        
+        return $filtered_ads;
+    }
+    
+    private function should_display_ad($ad, $current_post) {
+        // Aktiv-Check
+        $is_active = get_post_meta($ad->ID, '_bam_is_active', true);
+        if ($is_active === '0') {
+            return false;
+        }
+        
+        // Post Type Check
+        $allowed_post_types = get_post_meta($ad->ID, '_bam_post_types', true);
+        if (!empty($allowed_post_types) && is_array($allowed_post_types)) {
+            if (!in_array($current_post->post_type, $allowed_post_types)) {
+                return false;
+            }
+        }
+        
+        // Excluded IDs Check
+        $exclude_ids = get_post_meta($ad->ID, '_bam_exclude_ids', true);
+        if (!empty($exclude_ids)) {
+            $excluded = array_map('trim', explode(',', $exclude_ids));
+            $excluded = array_map('intval', $excluded);
+            if (in_array($current_post->ID, $excluded)) {
+                return false;
+            }
+        }
+        
+        // Categories Check (nur für Posts)
+        $allowed_categories = get_post_meta($ad->ID, '_bam_categories', true);
+        if (!empty($allowed_categories) && is_array($allowed_categories) && $current_post->post_type === 'post') {
+            $post_categories = wp_get_post_categories($current_post->ID);
+            $allowed_categories = array_map('intval', $allowed_categories);
+            if (empty(array_intersect($allowed_categories, $post_categories))) {
+                return false;
+            }
+        }
+        
+        // Tags Check (nur für Posts)
+        $allowed_tags = get_post_meta($ad->ID, '_bam_tags', true);
+        if (!empty($allowed_tags) && is_array($allowed_tags) && $current_post->post_type === 'post') {
+            $post_tags = wp_get_post_tags($current_post->ID, ['fields' => 'ids']);
+            $allowed_tags = array_map('intval', $allowed_tags);
+            if (empty(array_intersect($allowed_tags, $post_tags))) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    private function insert_ad_into_content($content, $ad) {
+        $ad_html = $this->render_ad($ad);
+        
+        if (empty($ad_html)) {
+            return $content;
+        }
+        
+        $position = get_post_meta($ad->ID, '_bam_position', true) ?: 'after_paragraph';
+        $number = (int) (get_post_meta($ad->ID, '_bam_paragraph_number', true) ?: 2);
+        
+        switch ($position) {
+            case 'before_content':
+                $content = $ad_html . $content;
+                break;
+                
+            case 'after_content':
+                $content = $content . $ad_html;
+                break;
+                
+            case 'after_paragraph':
+                $content = $this->insert_after_paragraph($content, $ad_html, $number);
+                break;
+                
+            case 'after_heading':
+                $content = $this->insert_after_heading($content, $ad_html, $number);
+                break;
+                
+            case 'middle_content':
+                $content = $this->insert_in_middle($content, $ad_html);
+                break;
+                
+            default:
+                $content = $content . $ad_html;
+        }
+        
+        return $content;
+    }
+    
+    /**
+     * Fügt Anzeige nach dem X. Absatz ein
+     */
+    private function insert_after_paragraph($content, $ad_html, $paragraph_number) {
+        // Finde alle </p> Tags (auch mit Gutenberg-Kommentaren)
+        $closing_p = '</p>';
+        $paragraphs = explode($closing_p, $content);
+        
+        // Wenn nicht genug Absätze vorhanden, am Ende einfügen
+        $total_paragraphs = count($paragraphs) - 1; // -1 weil explode ein leeres Element am Ende erzeugt
+        
+        if ($total_paragraphs < $paragraph_number) {
+            return $content . $ad_html;
+        }
+        
+        // Content neu zusammenbauen
+        $output = '';
+        
+        for ($i = 0; $i < count($paragraphs); $i++) {
+            $output .= $paragraphs[$i];
+            
+            // Nicht nach dem letzten Element
+            if ($i < count($paragraphs) - 1) {
+                $output .= $closing_p;
+            }
+            
+            // Nach dem gewünschten Absatz einfügen
+            if ($i + 1 === $paragraph_number) {
+                $output .= $ad_html;
+            }
+        }
+        
+        return $output;
+    }
+    
+    /**
+     * Fügt Anzeige nach der X. Überschrift ein
+     */
+    private function insert_after_heading($content, $ad_html, $heading_number) {
+        // Pattern für alle Überschriften (h1-h6)
+        $pattern = '/(<\/h[1-6]>)/i';
+        
+        // Alle Überschriften finden
+        preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE);
+        
+        if (empty($matches[0]) || count($matches[0]) < $heading_number) {
+            return $content . $ad_html;
+        }
+        
+        // Position nach der X. Überschrift
+        $match = $matches[0][$heading_number - 1];
+        $insert_position = $match[1] + strlen($match[0]);
+        
+        // Content aufteilen und Anzeige einfügen
+        $before = substr($content, 0, $insert_position);
+        $after = substr($content, $insert_position);
+        
+        return $before . $ad_html . $after;
+    }
+    
+    /**
+     * Fügt Anzeige in der Mitte des Contents ein
+     */
+    private function insert_in_middle($content, $ad_html) {
+        $closing_p = '</p>';
+        $paragraphs = explode($closing_p, $content);
+        $total = count($paragraphs) - 1;
+        
+        if ($total < 2) {
+            return $content . $ad_html;
+        }
+        
+        $middle = (int) ceil($total / 2);
+        
+        return $this->insert_after_paragraph($content, $ad_html, $middle);
+    }
+    
+    /**
+     * Rendert eine einzelne Anzeige
+     */
+    public function render_ad($ad) {
+        $content = get_post_meta($ad->ID, '_bam_ad_content', true);
+        
+        if (empty($content)) {
+            return '';
+        }
+        
+        $content_type = get_post_meta($ad->ID, '_bam_content_type', true) ?: 'html';
+        $devices = get_post_meta($ad->ID, '_bam_devices', true);
+        
+        // Standardwert für Geräte
+        if (empty($devices) || !is_array($devices)) {
+            $devices = ['desktop', 'tablet', 'mobile'];
+        }
+        
+        // Device Classes
+        $device_classes = ['bam-ad-container', 'bam-ad-' . $ad->ID];
+        
+        if (!in_array('desktop', $devices)) {
+            $device_classes[] = 'bam-hide-desktop';
+        }
+        if (!in_array('tablet', $devices)) {
+            $device_classes[] = 'bam-hide-tablet';
+        }
+        if (!in_array('mobile', $devices)) {
+            $device_classes[] = 'bam-hide-mobile';
+        }
+        
+        // Content verarbeiten
+        if ($content_type === 'php') {
+            ob_start();
+            try {
+                eval('?>' . $content);
+            } catch (Exception $e) {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    echo '<!-- BAM Error: ' . esc_html($e->getMessage()) . ' -->';
+                }
+            }
+            $rendered_content = ob_get_clean();
+        } else {
+            // HTML mit Shortcodes
+            // Shortcodes explizit ausführen (für Borlabs etc.)
+            $rendered_content = do_shortcode($content);
+        }
+        
+        if (empty(trim($rendered_content))) {
+            return '';
+        }
+        
+        return sprintf(
+            '<div class="%s">%s</div>',
+            esc_attr(implode(' ', $device_classes)),
+            $rendered_content
+        );
+    }
+
+
+
+    
+    /**
+     * CSS für Geräte-Sichtbarkeit
+     */
+    public function add_device_styles() {
+        // Nur wenn Anzeigen existieren
+        $has_ads = get_posts([
+            'post_type'      => BAM_Post_Type::POST_TYPE,
+            'posts_per_page' => 1,
+            'post_status'    => 'publish',
+            'fields'         => 'ids',
+        ]);
+        
+        if (empty($has_ads)) {
+            return;
+        }
+        ?>
+        <style id="bam-device-styles">
+            .bam-ad-container {
+                margin: 1.5em 0;
+                clear: both;
+            }
+            
+            /* Desktop (> 1024px) */
+            @media (min-width: 1025px) {
+                .bam-hide-desktop {
+                    display: none !important;
+                }
+            }
+            
+            /* Tablet (768px - 1024px) */
+            @media (min-width: 768px) and (max-width: 1024px) {
+                .bam-hide-tablet {
+                    display: none !important;
+                }
+            }
+            
+            /* Mobile (< 768px) */
+            @media (max-width: 767px) {
+                .bam-hide-mobile {
+                    display: none !important;
+                }
+            }
+        </style>
+        <?php
+    }
+}
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\includes\class-ad-manager-helper.php 
+ 
+<?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class BAM_Helper {
+    
+    /**
+     * Prüft ob ein bestimmtes Gerät aktiv ist
+     */
+    public static function is_device($device) {
+        // Server-seitige Device-Erkennung (optional)
+        if (!class_exists('Mobile_Detect')) {
+            return true;
+        }
+        
+        $detect = new Mobile_Detect();
+        
+        switch ($device) {
+            case 'mobile':
+                return $detect->isMobile() && !$detect->isTablet();
+            case 'tablet':
+                return $detect->isTablet();
+            case 'desktop':
+                return !$detect->isMobile();
+            default:
+                return true;
+        }
+    }
+    
+    /**
+     * Holt alle aktiven Anzeigen für eine bestimmte Position
+     */
+    public static function get_ads_by_position($position) {
+        return get_posts([
+            'post_type'      => BAM_Post_Type::POST_TYPE,
+            'posts_per_page' => -1,
+            'meta_query'     => [
+                'relation' => 'AND',
+                [
+                    'key'   => '_bam_is_active',
+                    'value' => '1',
+                ],
+                [
+                    'key'   => '_bam_position',
+                    'value' => $position,
+                ]
+            ]
+        ]);
+    }
+    
+    /**
+     * Rendert eine einzelne Anzeige manuell
+     */
+    public static function render_ad_by_id($ad_id) {
+        $ad = get_post($ad_id);
+        
+        if (!$ad || $ad->post_type !== BAM_Post_Type::POST_TYPE) {
+            return '';
+        }
+        
+        $frontend = new BAM_Frontend();
+        return $frontend->render_ad($ad);
+    }
+}
+
+// Shortcode für manuelle Anzeigen-Einbindung
+add_shortcode('bam_ad', function($atts) {
+    $atts = shortcode_atts(['id' => 0], $atts);
+    
+    if (empty($atts['id'])) {
+        return '';
+    }
+    
+    return BAM_Helper::render_ad_by_id($atts['id']);
+});
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\includes\class-ad-manager-loader.php 
+ 
+<?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class BAM_Loader {
+    
+    private $post_type;
+    private $admin;
+    private $frontend;
+    
+    public function __construct() {
+        $this->load_dependencies();
+    }
+    
+    private function load_dependencies() {
+        require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-helper.php';
+        require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-post-type.php';
+        require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-admin.php';
+        require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-frontend.php';
+        
+        $this->post_type = new BAM_Post_Type();
+        $this->admin = new BAM_Admin();
+        $this->frontend = new BAM_Frontend();
+    }
+    
+    public function run() {
+        // Post Type registrieren
+        add_action('init', [$this->post_type, 'register']);
+        
+        // Admin Hooks
+        if (is_admin()) {
+            add_action('add_meta_boxes', [$this->admin, 'add_meta_boxes']);
+            add_action('save_post', [$this->admin, 'save_meta_boxes'], 10, 2);
+            add_action('admin_enqueue_scripts', [$this->admin, 'enqueue_scripts']);
+        }
+        
+        // Frontend Hooks
+        add_filter('the_content', [$this->frontend, 'insert_ads'], 20);
+        add_action('wp_head', [$this->frontend, 'add_device_styles']);
+    }
+}
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\includes\class-ad-manager-post-type.php 
+ 
+<?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class BAM_Post_Type {
+    
+    const POST_TYPE = 'bam_ad';
+    
+    public function register() {
+        $labels = [
+            'name'               => __('Anzeigen', 'blocksy-ad-manager'),
+            'singular_name'      => __('Anzeige', 'blocksy-ad-manager'),
+            'menu_name'          => __('Ad Manager', 'blocksy-ad-manager'),
+            'add_new'            => __('Neue Anzeige', 'blocksy-ad-manager'),
+            'add_new_item'       => __('Neue Anzeige erstellen', 'blocksy-ad-manager'),
+            'edit_item'          => __('Anzeige bearbeiten', 'blocksy-ad-manager'),
+            'view_item'          => __('Anzeige ansehen', 'blocksy-ad-manager'),
+            'all_items'          => __('Alle Anzeigen', 'blocksy-ad-manager'),
+        ];
+        
+        $args = [
+            'labels'              => $labels,
+            'public'              => false,
+            'show_ui'             => true,
+            'show_in_menu'        => true,
+            'menu_icon'           => 'dashicons-megaphone',
+            'supports'            => ['title'],
+            'capability_type'     => 'post',
+            'hierarchical'        => false,
+        ];
+        
+        register_post_type(self::POST_TYPE, $args);
+    }
+}
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\templates\ad-template.php 
+ 
+ 

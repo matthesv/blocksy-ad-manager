@@ -12,6 +12,9 @@ class BAM_Admin {
             return;
         }
         
+        // Media Uploader für Bilder
+        wp_enqueue_media();
+        
         wp_enqueue_style(
             'bam-admin-style',
             BAM_PLUGIN_URL . 'admin/css/admin-style.css',
@@ -99,34 +102,85 @@ class BAM_Admin {
     public function render_position_metabox($post) {
         $position = get_post_meta($post->ID, '_bam_position', true) ?: 'after_paragraph';
         $paragraph_number = get_post_meta($post->ID, '_bam_paragraph_number', true) ?: 2;
+        
+        // Anchor Settings
+        $anchor_max_height = get_post_meta($post->ID, '_bam_anchor_max_height', true) ?: '150';
+        $anchor_max_height_unit = get_post_meta($post->ID, '_bam_anchor_max_height_unit', true) ?: 'px';
+        $anchor_allow_close = get_post_meta($post->ID, '_bam_anchor_allow_close', true) ?: '0';
+        $anchor_close_duration = get_post_meta($post->ID, '_bam_anchor_close_duration', true) ?: '24';
         ?>
         <div class="bam-metabox-position">
             <p>
                 <label><strong><?php _e('Position:', 'blocksy-ad-manager'); ?></strong></label>
             </p>
             <select name="bam_position" id="bam_position" style="width:100%;">
-                <option value="after_paragraph" <?php selected($position, 'after_paragraph'); ?>>
-                    <?php _e('Nach Absatz X', 'blocksy-ad-manager'); ?>
-                </option>
-                <option value="before_content" <?php selected($position, 'before_content'); ?>>
-                    <?php _e('Vor dem Inhalt', 'blocksy-ad-manager'); ?>
-                </option>
-                <option value="after_content" <?php selected($position, 'after_content'); ?>>
-                    <?php _e('Nach dem Inhalt', 'blocksy-ad-manager'); ?>
-                </option>
-                <option value="after_heading" <?php selected($position, 'after_heading'); ?>>
-                    <?php _e('Nach Überschrift X', 'blocksy-ad-manager'); ?>
-                </option>
-                <option value="middle_content" <?php selected($position, 'middle_content'); ?>>
-                    <?php _e('Mitte des Inhalts', 'blocksy-ad-manager'); ?>
-                </option>
+                <optgroup label="<?php esc_attr_e('Im Inhalt', 'blocksy-ad-manager'); ?>">
+                    <option value="after_paragraph" <?php selected($position, 'after_paragraph'); ?>>
+                        <?php _e('Nach Absatz X', 'blocksy-ad-manager'); ?>
+                    </option>
+                    <option value="before_content" <?php selected($position, 'before_content'); ?>>
+                        <?php _e('Vor dem Inhalt', 'blocksy-ad-manager'); ?>
+                    </option>
+                    <option value="after_content" <?php selected($position, 'after_content'); ?>>
+                        <?php _e('Nach dem Inhalt', 'blocksy-ad-manager'); ?>
+                    </option>
+                    <option value="after_heading" <?php selected($position, 'after_heading'); ?>>
+                        <?php _e('Nach Überschrift X', 'blocksy-ad-manager'); ?>
+                    </option>
+                    <option value="middle_content" <?php selected($position, 'middle_content'); ?>>
+                        <?php _e('Mitte des Inhalts', 'blocksy-ad-manager'); ?>
+                    </option>
+                </optgroup>
+                <optgroup label="<?php esc_attr_e('Spezielle Formate', 'blocksy-ad-manager'); ?>">
+                    <option value="anchor" <?php selected($position, 'anchor'); ?>>
+                        📌 <?php _e('Anchor Ad (fixiert unten)', 'blocksy-ad-manager'); ?>
+                    </option>
+                </optgroup>
             </select>
             
+            <!-- Paragraph/Heading Settings -->
             <div id="bam_paragraph_settings" style="margin-top:15px;">
                 <label>
                     <strong><?php _e('Nach Element Nummer:', 'blocksy-ad-manager'); ?></strong>
                 </label>
                 <input type="number" name="bam_paragraph_number" value="<?php echo esc_attr($paragraph_number); ?>" min="1" max="50" style="width:80px;">
+            </div>
+            
+            <!-- Anchor Ad Settings -->
+            <div id="bam_anchor_settings" class="bam-position-settings" style="margin-top:15px; display:none;">
+                <div class="bam-settings-card">
+                    <h4><?php _e('📐 Anchor Ad Einstellungen', 'blocksy-ad-manager'); ?></h4>
+                    
+                    <p>
+                        <label><strong><?php _e('Maximale Höhe:', 'blocksy-ad-manager'); ?></strong></label>
+                        <br>
+                        <input type="number" name="bam_anchor_max_height" value="<?php echo esc_attr($anchor_max_height); ?>" min="50" max="500" style="width:80px;">
+                        <select name="bam_anchor_max_height_unit" style="width:70px;">
+                            <option value="px" <?php selected($anchor_max_height_unit, 'px'); ?>>px</option>
+                            <option value="vh" <?php selected($anchor_max_height_unit, 'vh'); ?>>vh (%)</option>
+                        </select>
+                    </p>
+                    
+                    <p>
+                        <label>
+                            <input type="checkbox" name="bam_anchor_allow_close" value="1" <?php checked($anchor_allow_close, '1'); ?>>
+                            <strong><?php _e('Schließen erlauben', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                        <br>
+                        <span class="description"><?php _e('Benutzer kann die Anzeige dauerhaft ausblenden.', 'blocksy-ad-manager'); ?></span>
+                    </p>
+                    
+                    <div id="bam_anchor_close_settings" style="margin-top:10px; <?php echo $anchor_allow_close !== '1' ? 'display:none;' : ''; ?>">
+                        <label>
+                            <strong><?php _e('Ausblenden für:', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                        <br>
+                        <input type="number" name="bam_anchor_close_duration" value="<?php echo esc_attr($anchor_close_duration); ?>" min="1" max="720" style="width:80px;">
+                        <?php _e('Stunden', 'blocksy-ad-manager'); ?>
+                        <br>
+                        <span class="description"><?php _e('Nach dieser Zeit wird die Anzeige wieder eingeblendet.', 'blocksy-ad-manager'); ?></span>
+                    </div>
+                </div>
             </div>
         </div>
         <?php
@@ -262,6 +316,24 @@ class BAM_Admin {
         
         if (isset($_POST['bam_paragraph_number'])) {
             update_post_meta($post_id, '_bam_paragraph_number', absint($_POST['bam_paragraph_number']));
+        }
+        
+        // Anchor Settings
+        if (isset($_POST['bam_anchor_max_height'])) {
+            update_post_meta($post_id, '_bam_anchor_max_height', absint($_POST['bam_anchor_max_height']));
+        }
+        
+        if (isset($_POST['bam_anchor_max_height_unit'])) {
+            $unit = sanitize_text_field($_POST['bam_anchor_max_height_unit']);
+            $unit = in_array($unit, ['px', 'vh']) ? $unit : 'px';
+            update_post_meta($post_id, '_bam_anchor_max_height_unit', $unit);
+        }
+        
+        $anchor_allow_close = isset($_POST['bam_anchor_allow_close']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_anchor_allow_close', $anchor_allow_close);
+        
+        if (isset($_POST['bam_anchor_close_duration'])) {
+            update_post_meta($post_id, '_bam_anchor_close_duration', absint($_POST['bam_anchor_close_duration']));
         }
         
         // Targeting
