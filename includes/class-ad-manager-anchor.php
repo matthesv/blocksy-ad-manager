@@ -3,7 +3,7 @@
  * Anchor Ad Functionality
  * 
  * @package Blocksy_Ad_Manager
- * @since 1.2.0
+ * @since 1.3.0
  */
 
 if (!defined('ABSPATH')) {
@@ -16,7 +16,7 @@ class BAM_Anchor {
      * Initialisiert die Anchor Ad Hooks
      */
     public function init() {
-        add_action('wp_footer', [$this, 'render_anchor_ads']);
+        add_action('wp_footer', [$this, 'render_anchor_ads'], 99);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
     }
     
@@ -40,16 +40,10 @@ class BAM_Anchor {
         wp_enqueue_script(
             'bam-anchor-script',
             BAM_PLUGIN_URL . 'assets/js/anchor.js',
-            [],
+            [], // Keine Abhängigkeiten
             BAM_VERSION,
-            true
+            true // Im Footer laden
         );
-        
-        wp_localize_script('bam-anchor-script', 'bamAnchor', [
-            'minimizeText' => __('Minimieren', 'blocksy-ad-manager'),
-            'expandText'   => __('Anzeige einblenden', 'blocksy-ad-manager'),
-            'closeText'    => __('Schließen', 'blocksy-ad-manager'),
-        ]);
     }
     
     /**
@@ -218,18 +212,19 @@ class BAM_Anchor {
         $close_button_html = '';
         if ($allow_close === '1') {
             $close_button_html = sprintf(
-                '<button type="button" class="bam-anchor-close" aria-label="%s">✕</button>',
-                esc_attr__('Schließen', 'blocksy-ad-manager')
+                '<button type="button" class="bam-anchor-close" aria-label="%s" title="%s">×</button>',
+                esc_attr__('Schließen', 'blocksy-ad-manager'),
+                esc_attr__('Anzeige schließen', 'blocksy-ad-manager')
             );
         }
         
-        // HTML mit Tab-Layout
+        // HTML mit Tab-Layout - KEIN aria-hidden verwenden
         $output = sprintf(
-            '<div class="%s" style="%s" %s>
+            '<div class="%s" style="%s" %s role="complementary" aria-label="%s">
                 <!-- Tab Bar (oberhalb der Box) -->
                 <div class="bam-anchor-tab">
-                    <button type="button" class="bam-anchor-toggle" aria-expanded="true" aria-label="%s">
-                        <span class="bam-anchor-tab-icon">▼</span>
+                    <button type="button" class="bam-anchor-toggle" aria-expanded="true" title="%s">
+                        <span class="bam-anchor-tab-icon" aria-hidden="true">▼</span>
                         <span class="bam-anchor-tab-text-minimize">%s</span>
                         <span class="bam-anchor-tab-text-expand">%s</span>
                     </button>
@@ -243,7 +238,8 @@ class BAM_Anchor {
             esc_attr(implode(' ', $device_classes)),
             $max_height_style,
             $data_attrs,
-            esc_attr__('Anzeige minimieren/maximieren', 'blocksy-ad-manager'),
+            esc_attr__('Werbeanzeige', 'blocksy-ad-manager'),
+            esc_attr__('Anzeige minimieren oder maximieren', 'blocksy-ad-manager'),
             esc_html__('Minimieren', 'blocksy-ad-manager'),
             esc_html__('Anzeige einblenden', 'blocksy-ad-manager'),
             $close_button_html,
