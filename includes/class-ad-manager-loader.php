@@ -9,6 +9,7 @@ class BAM_Loader {
     private $admin;
     private $frontend;
     private $anchor;
+    private $modal;
     
     public function __construct() {
         $this->load_dependencies();
@@ -20,11 +21,13 @@ class BAM_Loader {
         require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-admin.php';
         require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-frontend.php';
         require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-anchor.php';
+        require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-modal.php';
         
         $this->post_type = new BAM_Post_Type();
         $this->admin = new BAM_Admin();
         $this->frontend = new BAM_Frontend();
         $this->anchor = new BAM_Anchor();
+        $this->modal = new BAM_Modal();
     }
     
     public function run() {
@@ -44,5 +47,8 @@ class BAM_Loader {
         
         // Anchor Ads
         $this->anchor->init();
+        
+        // Modal Ads
+        $this->modal->init();
     }
 }

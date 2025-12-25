@@ -2,7 +2,7 @@
  * Anchor Ad JavaScript
  * 
  * @package Blocksy_Ad_Manager
- * @since 1.1.0
+ * @since 1.2.0
  */
 
 (function() {
@@ -11,9 +11,9 @@
     /**
      * Cookie/Storage Helper
      */
-    const BamStorage = {
+    var BamStorage = {
         set: function(key, value, hours) {
-            const expires = new Date();
+            var expires = new Date();
             expires.setTime(expires.getTime() + (hours * 60 * 60 * 1000));
             
             try {
@@ -22,27 +22,25 @@
                     expires: expires.getTime()
                 }));
             } catch (e) {
-                // Fallback to cookie
                 document.cookie = key + '=' + value + ';expires=' + expires.toUTCString() + ';path=/;SameSite=Lax';
             }
         },
         
         get: function(key) {
             try {
-                const item = localStorage.getItem(key);
+                var item = localStorage.getItem(key);
                 if (item) {
-                    const data = JSON.parse(item);
+                    var data = JSON.parse(item);
                     if (data.expires > Date.now()) {
                         return data.value;
                     }
                     localStorage.removeItem(key);
                 }
             } catch (e) {
-                // Fallback to cookie
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.startsWith(key + '=')) {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.indexOf(key + '=') === 0) {
                         return cookie.substring(key.length + 1);
                     }
                 }
@@ -62,126 +60,138 @@
     /**
      * Anchor Ad Controller
      */
-    class BamAnchorAd {
-        constructor(element) {
-            this.element = element;
-            this.adId = element.dataset.adId;
-            this.allowClose = element.dataset.allowClose === '1';
-            this.closeDuration = parseInt(element.dataset.closeDuration, 10) || 24;
-            
-            this.minimizeBtn = element.querySelector('.bam-anchor-minimize');
-            this.closeBtn = element.querySelector('.bam-anchor-close');
-            this.content = element.querySelector('.bam-anchor-content');
-            
-            this.storageKeyMinimized = 'bam_anchor_minimized_' + this.adId;
-            this.storageKeyClosed = 'bam_anchor_closed_' + this.adId;
-            
-            this.init();
+    function BamAnchorAd(element) {
+        this.element = element;
+        this.adId = element.getAttribute('data-ad-id');
+        this.allowClose = element.getAttribute('data-allow-close') === '1';
+        this.closeDuration = parseInt(element.getAttribute('data-close-duration'), 10) || 24;
+        
+        this.toggleBtn = element.querySelector('.bam-anchor-toggle');
+        this.closeBtn = element.querySelector('.bam-anchor-close');
+        
+        this.storageKeyMinimized = 'bam_anchor_minimized_' + this.adId;
+        this.storageKeyClosed = 'bam_anchor_closed_' + this.adId;
+        
+        this.init();
+    }
+    
+    BamAnchorAd.prototype.init = function() {
+        var self = this;
+        
+        // Check if ad was closed
+        if (this.allowClose && BamStorage.get(this.storageKeyClosed)) {
+            this.element.classList.add('bam-closed');
+            return;
         }
         
-        init() {
-            // Check if ad was closed
-            if (this.allowClose && BamStorage.get(this.storageKeyClosed)) {
-                this.element.classList.add('bam-closed');
-                return;
-            }
-            
-            // Check if ad was minimized
-            if (BamStorage.get(this.storageKeyMinimized)) {
-                this.element.classList.add('bam-minimized');
-            }
-            
-            this.bindEvents();
+        // Check if ad was minimized
+        if (BamStorage.get(this.storageKeyMinimized)) {
+            this.element.classList.add('bam-minimized');
         }
         
-        bindEvents() {
-            // Minimize button
-            if (this.minimizeBtn) {
-                this.minimizeBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.toggleMinimize();
-                });
-            }
-            
-            // Close button
-            if (this.closeBtn) {
-                this.closeBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.close();
-                });
-            }
-            
-            // Keyboard accessibility
-            this.element.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    if (this.allowClose) {
-                        this.close();
-                    } else {
-                        this.minimize();
-                    }
-                }
+        this.bindEvents();
+    };
+    
+    BamAnchorAd.prototype.bindEvents = function() {
+        var self = this;
+        
+        // Toggle button (minimize/expand)
+        if (this.toggleBtn) {
+            this.toggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                self.toggle();
             });
         }
         
-        toggleMinimize() {
-            if (this.element.classList.contains('bam-minimized')) {
-                this.expand();
-            } else {
-                this.minimize();
+        // Close button
+        if (this.closeBtn) {
+            this.closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                self.close();
+            });
+        }
+        
+        // Keyboard accessibility
+        this.element.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (self.allowClose) {
+                    self.close();
+                } else {
+                    self.minimize();
+                }
             }
+        });
+    };
+    
+    BamAnchorAd.prototype.toggle = function() {
+        if (this.element.classList.contains('bam-minimized')) {
+            this.expand();
+        } else {
+            this.minimize();
+        }
+    };
+    
+    BamAnchorAd.prototype.minimize = function() {
+        this.element.classList.add('bam-minimized');
+        BamStorage.set(this.storageKeyMinimized, '1', 24);
+        
+        // Update ARIA
+        if (this.toggleBtn) {
+            this.toggleBtn.setAttribute('aria-expanded', 'false');
         }
         
-        minimize() {
-            this.element.classList.add('bam-minimized');
-            BamStorage.set(this.storageKeyMinimized, '1', 24); // Remember for 24h
-            
-            // Update ARIA
-            this.minimizeBtn.setAttribute('aria-expanded', 'false');
-            
-            // Trigger event
-            this.element.dispatchEvent(new CustomEvent('bam:anchor:minimized', {
-                detail: { adId: this.adId }
-            }));
+        // Trigger event
+        var event = new CustomEvent('bam:anchor:minimized', {
+            detail: { adId: this.adId }
+        });
+        this.element.dispatchEvent(event);
+    };
+    
+    BamAnchorAd.prototype.expand = function() {
+        this.element.classList.remove('bam-minimized');
+        BamStorage.remove(this.storageKeyMinimized);
+        
+        // Update ARIA
+        if (this.toggleBtn) {
+            this.toggleBtn.setAttribute('aria-expanded', 'true');
         }
         
-        expand() {
-            this.element.classList.remove('bam-minimized');
-            BamStorage.remove(this.storageKeyMinimized);
-            
-            // Update ARIA
-            this.minimizeBtn.setAttribute('aria-expanded', 'true');
-            
-            // Trigger event
-            this.element.dispatchEvent(new CustomEvent('bam:anchor:expanded', {
-                detail: { adId: this.adId }
-            }));
-        }
+        // Trigger event
+        var event = new CustomEvent('bam:anchor:expanded', {
+            detail: { adId: this.adId }
+        });
+        this.element.dispatchEvent(event);
+    };
+    
+    BamAnchorAd.prototype.close = function() {
+        var self = this;
         
-        close() {
-            this.element.classList.add('bam-closed');
-            BamStorage.set(this.storageKeyClosed, '1', this.closeDuration);
-            
-            // Trigger event
-            this.element.dispatchEvent(new CustomEvent('bam:anchor:closed', {
-                detail: { adId: this.adId }
-            }));
-            
-            // Remove from DOM after animation
-            setTimeout(() => {
-                this.element.remove();
-            }, 400);
-        }
-    }
+        this.element.classList.add('bam-closed');
+        BamStorage.set(this.storageKeyClosed, '1', this.closeDuration);
+        
+        // Trigger event
+        var event = new CustomEvent('bam:anchor:closed', {
+            detail: { adId: this.adId }
+        });
+        this.element.dispatchEvent(event);
+        
+        // Remove from DOM after animation
+        setTimeout(function() {
+            if (self.element && self.element.parentNode) {
+                self.element.parentNode.removeChild(self.element);
+            }
+        }, 400);
+    };
     
     /**
      * Initialize all Anchor Ads
      */
     function initAnchorAds() {
-        const anchorAds = document.querySelectorAll('.bam-anchor-ad');
+        var anchorAds = document.querySelectorAll('.bam-anchor-ad');
         
-        anchorAds.forEach(function(ad) {
-            new BamAnchorAd(ad);
-        });
+        for (var i = 0; i < anchorAds.length; i++) {
+            new BamAnchorAd(anchorAds[i]);
+        }
     }
     
     // Initialize on DOM ready
@@ -191,7 +201,7 @@
         initAnchorAds();
     }
     
-    // Expose to global scope for external access
+    // Expose to global scope
     window.BamAnchorAd = BamAnchorAd;
     window.BamStorage = BamStorage;
     

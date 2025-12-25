@@ -1,0 +1,421 @@
+/**
+ * Modal Ad Styles
+ * 
+ * @package Blocksy_Ad_Manager
+ * @since 1.3.0
+ */
+
+/* ==========================================================================
+   CSS Variables
+   ========================================================================== */
+
+.bam-modal-wrapper {
+    --bam-modal-width: 600px;
+    --bam-modal-max-width: 90vw;
+    --bam-modal-max-height: 90vh;
+    --bam-modal-bg: #ffffff;
+    --bam-modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --bam-modal-border-radius: 16px;
+    --bam-modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --bam-modal-header-bg: transparent;
+    --bam-modal-footer-bg: #f9fafb;
+    --bam-modal-border-color: #e5e7eb;
+    --bam-modal-text-color: #374151;
+    --bam-modal-close-color: #6b7280;
+    --bam-modal-close-hover: #111827;
+    --bam-modal-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   Modal Wrapper (Hidden by default)
+   ========================================================================== */
+
+.bam-modal-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--bam-modal-transition), visibility var(--bam-modal-transition);
+}
+
+.bam-modal-wrapper.bam-modal-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.bam-modal-wrapper.bam-modal-hidden {
+    display: none !important;
+}
+
+/* ==========================================================================
+   Overlay / Backdrop
+   ========================================================================== */
+
+.bam-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bam-modal-overlay-bg);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+/* ==========================================================================
+   Modal Dialog
+   ========================================================================== */
+
+.bam-modal {
+    position: relative;
+    width: var(--bam-modal-width);
+    max-width: var(--bam-modal-max-width);
+    max-height: var(--bam-modal-max-height);
+    background: var(--bam-modal-bg);
+    border-radius: var(--bam-modal-border-radius);
+    box-shadow: var(--bam-modal-shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.9) translateY(20px);
+    transition: transform var(--bam-modal-transition);
+}
+
+.bam-modal-wrapper.bam-modal-visible .bam-modal {
+    transform: scale(1) translateY(0);
+}
+
+/* ==========================================================================
+   Modal Header
+   ========================================================================== */
+
+.bam-modal-header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 12px;
+    z-index: 10;
+}
+
+.bam-modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--bam-modal-close-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.bam-modal-close:hover {
+    background: #ffffff;
+    color: var(--bam-modal-close-hover);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bam-modal-close:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.bam-modal-close svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* ==========================================================================
+   Modal Body
+   ========================================================================== */
+
+.bam-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+.bam-modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.bam-modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.bam-modal-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.bam-modal-body::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* ==========================================================================
+   Modal Footer
+   ========================================================================== */
+
+.bam-modal-footer {
+    padding: 12px 20px;
+    background: var(--bam-modal-footer-bg);
+    border-top: 1px solid var(--bam-modal-border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bam-modal-footer:empty {
+    display: none;
+}
+
+.bam-modal-dismiss-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--bam-modal-text-color);
+    user-select: none;
+}
+
+.bam-modal-dismiss-label:hover {
+    color: #111827;
+}
+
+.bam-modal-dismiss-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+}
+
+/* ==========================================================================
+   Banner Content Styles
+   ========================================================================== */
+
+.bam-modal-banner {
+    text-align: center;
+    line-height: 0;
+}
+
+.bam-modal-banner-link {
+    display: block;
+    transition: opacity 0.2s ease;
+}
+
+.bam-modal-banner-link:hover {
+    opacity: 0.95;
+}
+
+.bam-modal-banner-img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: var(--bam-modal-border-radius) var(--bam-modal-border-radius) 0 0;
+}
+
+/* Wenn kein Footer vorhanden */
+.bam-modal-footer:empty + .bam-modal-body .bam-modal-banner-img,
+.bam-modal-body:last-child .bam-modal-banner-img {
+    border-radius: var(--bam-modal-border-radius);
+}
+
+/* ==========================================================================
+   HTML/Text Content Styles
+   ========================================================================== */
+
+.bam-modal-body > *:not(.bam-modal-banner) {
+    padding: 24px;
+}
+
+.bam-modal-body p:first-child {
+    margin-top: 0;
+}
+
+.bam-modal-body p:last-child {
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Responsive Styles
+   ========================================================================== */
+
+/* Desktop */
+@media (min-width: 1025px) {
+    .bam-hide-desktop.bam-modal-wrapper {
+        display: none !important;
+    }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .bam-modal-wrapper {
+        padding: 15px;
+    }
+    
+    .bam-modal {
+        --bam-modal-border-radius: 12px;
+    }
+    
+    .bam-hide-tablet.bam-modal-wrapper {
+        display: none !important;
+    }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+    .bam-modal-wrapper {
+        padding: 10px;
+        align-items: flex-end;
+    }
+    
+    .bam-modal {
+        --bam-modal-width: 100%;
+        --bam-modal-max-width: 100%;
+        --bam-modal-border-radius: 16px 16px 0 0;
+        max-height: 85vh;
+    }
+    
+    .bam-modal-close {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .bam-modal-close svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .bam-modal-body > *:not(.bam-modal-banner) {
+        padding: 16px;
+    }
+    
+    .bam-modal-footer {
+        padding: 10px 16px;
+    }
+    
+    .bam-modal-banner-img {
+        border-radius: 16px 16px 0 0;
+    }
+    
+    .bam-hide-mobile.bam-modal-wrapper {
+        display: none !important;
+    }
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+
+@keyframes bam-modal-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes bam-modal-slide-up {
+    from {
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Mobile slide-up animation */
+@media (max-width: 767px) {
+    @keyframes bam-modal-slide-up-mobile {
+        from {
+            transform: translateY(100%);
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+    
+    .bam-modal-wrapper.bam-modal-visible .bam-modal {
+        animation: bam-modal-slide-up-mobile 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+}
+
+/* ==========================================================================
+   Dark Mode Support
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+    .bam-modal-wrapper {
+        --bam-modal-bg: #1f2937;
+        --bam-modal-overlay-bg: rgba(0, 0, 0, 0.75);
+        --bam-modal-footer-bg: #111827;
+        --bam-modal-border-color: #374151;
+        --bam-modal-text-color: #e5e7eb;
+        --bam-modal-close-color: #9ca3af;
+        --bam-modal-close-hover: #f3f4f6;
+    }
+    
+    .bam-modal-close {
+        background: rgba(31, 41, 55, 0.9);
+    }
+    
+    .bam-modal-close:hover {
+        background: #374151;
+    }
+    
+    .bam-modal-body::-webkit-scrollbar-track {
+        background: #374151;
+    }
+    
+    .bam-modal-body::-webkit-scrollbar-thumb {
+        background: #6b7280;
+    }
+}
+
+/* Blocksy Dark Mode Class */
+[data-color-mode="dark"] .bam-modal-wrapper,
+.dark-mode .bam-modal-wrapper {
+    --bam-modal-bg: #1f2937;
+    --bam-modal-overlay-bg: rgba(0, 0, 0, 0.75);
+    --bam-modal-footer-bg: #111827;
+    --bam-modal-border-color: #374151;
+    --bam-modal-text-color: #e5e7eb;
+    --bam-modal-close-color: #9ca3af;
+    --bam-modal-close-hover: #f3f4f6;
+}
+
+[data-color-mode="dark"] .bam-modal-close,
+.dark-mode .bam-modal-close {
+    background: rgba(31, 41, 55, 0.9);
+}
+
+[data-color-mode="dark"] .bam-modal-close:hover,
+.dark-mode .bam-modal-close:hover {
+    background: #374151;
+}
+
+/* ==========================================================================
+   Body Scroll Lock when Modal is open
+   ========================================================================== */
+
+body.bam-modal-open {
+    overflow: hidden;
+    padding-right: var(--bam-scrollbar-width, 0);
+}

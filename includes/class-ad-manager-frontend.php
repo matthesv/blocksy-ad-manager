@@ -48,15 +48,31 @@ class BAM_Frontend {
             'posts_per_page' => -1,
             'post_status'    => 'publish',
             'meta_query'     => [
-                'relation' => 'OR',
+                'relation' => 'AND',
                 [
-                    'key'     => '_bam_is_active',
-                    'value'   => '1',
-                    'compare' => '=',
+                    'relation' => 'OR',
+                    [
+                        'key'     => '_bam_is_active',
+                        'value'   => '1',
+                        'compare' => '=',
+                    ],
+                    [
+                        'key'     => '_bam_is_active',
+                        'compare' => 'NOT EXISTS',
+                    ],
                 ],
+                // Anchor Ads ausschließen (werden separat behandelt)
                 [
-                    'key'     => '_bam_is_active',
-                    'compare' => 'NOT EXISTS',
+                    'relation' => 'OR',
+                    [
+                        'key'     => '_bam_position',
+                        'value'   => 'anchor',
+                        'compare' => '!=',
+                    ],
+                    [
+                        'key'     => '_bam_position',
+                        'compare' => 'NOT EXISTS',
+                    ],
                 ],
             ],
             'orderby'        => 'menu_order',
@@ -165,29 +181,24 @@ class BAM_Frontend {
      * Fügt Anzeige nach dem X. Absatz ein
      */
     private function insert_after_paragraph($content, $ad_html, $paragraph_number) {
-        // Finde alle </p> Tags (auch mit Gutenberg-Kommentaren)
         $closing_p = '</p>';
         $paragraphs = explode($closing_p, $content);
         
-        // Wenn nicht genug Absätze vorhanden, am Ende einfügen
-        $total_paragraphs = count($paragraphs) - 1; // -1 weil explode ein leeres Element am Ende erzeugt
+        $total_paragraphs = count($paragraphs) - 1;
         
         if ($total_paragraphs < $paragraph_number) {
             return $content . $ad_html;
         }
         
-        // Content neu zusammenbauen
         $output = '';
         
         for ($i = 0; $i < count($paragraphs); $i++) {
             $output .= $paragraphs[$i];
             
-            // Nicht nach dem letzten Element
             if ($i < count($paragraphs) - 1) {
                 $output .= $closing_p;
             }
             
-            // Nach dem gewünschten Absatz einfügen
             if ($i + 1 === $paragraph_number) {
                 $output .= $ad_html;
             }
@@ -200,21 +211,17 @@ class BAM_Frontend {
      * Fügt Anzeige nach der X. Überschrift ein
      */
     private function insert_after_heading($content, $ad_html, $heading_number) {
-        // Pattern für alle Überschriften (h1-h6)
         $pattern = '/(<\/h[1-6]>)/i';
         
-        // Alle Überschriften finden
         preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE);
         
         if (empty($matches[0]) || count($matches[0]) < $heading_number) {
             return $content . $ad_html;
         }
         
-        // Position nach der X. Überschrift
         $match = $matches[0][$heading_number - 1];
         $insert_position = $match[1] + strlen($match[0]);
         
-        // Content aufteilen und Anzeige einfügen
         $before = substr($content, 0, $insert_position);
         $after = substr($content, $insert_position);
         
@@ -242,12 +249,6 @@ class BAM_Frontend {
      * Rendert eine einzelne Anzeige
      */
     public function render_ad($ad) {
-        $content = get_post_meta($ad->ID, '_bam_ad_content', true);
-        
-        if (empty($content)) {
-            return '';
-        }
-        
         $content_type = get_post_meta($ad->ID, '_bam_content_type', true) ?: 'html';
         $devices = get_post_meta($ad->ID, '_bam_devices', true);
         
@@ -269,21 +270,11 @@ class BAM_Frontend {
             $device_classes[] = 'bam-hide-mobile';
         }
         
-        // Content verarbeiten
-        if ($content_type === 'php') {
-            ob_start();
-            try {
-                eval('?>' . $content);
-            } catch (Exception $e) {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    echo '<!-- BAM Error: ' . esc_html($e->getMessage()) . ' -->';
-                }
-            }
-            $rendered_content = ob_get_clean();
+        // Content basierend auf Typ rendern
+        if ($content_type === 'image') {
+            $rendered_content = $this->render_banner_content($ad);
         } else {
-            // HTML mit Shortcodes
-            // Shortcodes explizit ausführen (für Borlabs etc.)
-            $rendered_content = do_shortcode($content);
+            $rendered_content = $this->render_code_content($ad, $content_type);
         }
         
         if (empty(trim($rendered_content))) {
@@ -296,15 +287,116 @@ class BAM_Frontend {
             $rendered_content
         );
     }
-
-
-
     
     /**
-     * CSS für Geräte-Sichtbarkeit
+     * Rendert Banner/Bild-Content
+     */
+    private function render_banner_content($ad) {
+        $image_url = get_post_meta($ad->ID, '_bam_banner_image_url', true);
+        $image_id = get_post_meta($ad->ID, '_bam_banner_image_id', true);
+        $link_url = get_post_meta($ad->ID, '_bam_banner_link', true);
+        $alt_text = get_post_meta($ad->ID, '_bam_banner_alt', true);
+        $new_tab = get_post_meta($ad->ID, '_bam_banner_new_tab', true) === '1';
+        $nofollow = get_post_meta($ad->ID, '_bam_banner_nofollow', true) === '1';
+        
+        // Kein Bild vorhanden
+        if (empty($image_url) && empty($image_id)) {
+            return '';
+        }
+        
+        // Bild-URL aus ID holen (für bessere Kompatibilität)
+        if ($image_id && !$image_url) {
+            $image_url = wp_get_attachment_url($image_id);
+        }
+        
+        if (empty($image_url)) {
+            return '';
+        }
+        
+        // Responsive Bild mit srcset falls möglich
+        $image_html = '';
+        
+        if ($image_id) {
+            // WordPress responsive image
+            $image_html = wp_get_attachment_image($image_id, 'full', false, [
+                'class' => 'bam-banner-img',
+                'alt'   => $alt_text,
+            ]);
+        } else {
+            // Fallback: einfaches img-Tag
+            $image_html = sprintf(
+                '<img src="%s" alt="%s" class="bam-banner-img" loading="lazy">',
+                esc_url($image_url),
+                esc_attr($alt_text)
+            );
+        }
+        
+        // Ohne Link
+        if (empty($link_url)) {
+            return sprintf(
+                '<div class="bam-banner">%s</div>',
+                $image_html
+            );
+        }
+        
+        // Mit Link
+        $link_attrs = [];
+        $link_attrs[] = sprintf('href="%s"', esc_url($link_url));
+        $link_attrs[] = 'class="bam-banner-link"';
+        
+        if ($new_tab) {
+            $link_attrs[] = 'target="_blank"';
+        }
+        
+        // Rel-Attribute
+        $rel = [];
+        if ($new_tab) {
+            $rel[] = 'noopener';
+            $rel[] = 'noreferrer';
+        }
+        if ($nofollow) {
+            $rel[] = 'nofollow';
+        }
+        if (!empty($rel)) {
+            $link_attrs[] = sprintf('rel="%s"', implode(' ', $rel));
+        }
+        
+        return sprintf(
+            '<div class="bam-banner"><a %s>%s</a></div>',
+            implode(' ', $link_attrs),
+            $image_html
+        );
+    }
+    
+    /**
+     * Rendert HTML/PHP-Content
+     */
+    private function render_code_content($ad, $content_type) {
+        $content = get_post_meta($ad->ID, '_bam_ad_content', true);
+        
+        if (empty($content)) {
+            return '';
+        }
+        
+        if ($content_type === 'php') {
+            ob_start();
+            try {
+                eval('?>' . $content);
+            } catch (Exception $e) {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    echo '<!-- BAM Error: ' . esc_html($e->getMessage()) . ' -->';
+                }
+            }
+            return ob_get_clean();
+        } else {
+            return do_shortcode($content);
+        }
+    }
+    
+    /**
+     * CSS für Geräte-Sichtbarkeit und Banner
      */
     public function add_device_styles() {
-        // Nur wenn Anzeigen existieren
         $has_ads = get_posts([
             'post_type'      => BAM_Post_Type::POST_TYPE,
             'posts_per_page' => 1,
@@ -320,6 +412,28 @@ class BAM_Frontend {
             .bam-ad-container {
                 margin: 1.5em 0;
                 clear: both;
+            }
+            
+            /* Banner Styles */
+            .bam-banner {
+                text-align: center;
+            }
+            
+            .bam-banner-link {
+                display: inline-block;
+                transition: opacity 0.2s ease;
+            }
+            
+            .bam-banner-link:hover {
+                opacity: 0.9;
+            }
+            
+            .bam-banner-img {
+                max-width: 100%;
+                height: auto;
+                display: block;
+                margin: 0 auto;
+                border-radius: 4px;
             }
             
             /* Desktop (> 1024px) */

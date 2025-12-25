@@ -29,6 +29,12 @@ class BAM_Admin {
             BAM_VERSION,
             true
         );
+        
+        // Lokalisierung für JS
+        wp_localize_script('bam-admin-script', 'bamAdmin', [
+            'mediaTitle'  => __('Banner-Bild auswählen', 'blocksy-ad-manager'),
+            'mediaButton' => __('Bild verwenden', 'blocksy-ad-manager'),
+        ]);
     }
     
     public function add_meta_boxes() {
@@ -74,27 +80,104 @@ class BAM_Admin {
         
         $content = get_post_meta($post->ID, '_bam_ad_content', true);
         $content_type = get_post_meta($post->ID, '_bam_content_type', true) ?: 'html';
+        
+        // Banner/Image Settings
+        $banner_image_id = get_post_meta($post->ID, '_bam_banner_image_id', true);
+        $banner_image_url = get_post_meta($post->ID, '_bam_banner_image_url', true);
+        $banner_link = get_post_meta($post->ID, '_bam_banner_link', true);
+        $banner_alt = get_post_meta($post->ID, '_bam_banner_alt', true);
+        $banner_new_tab = get_post_meta($post->ID, '_bam_banner_new_tab', true) ?: '1';
+        $banner_nofollow = get_post_meta($post->ID, '_bam_banner_nofollow', true) ?: '0';
+        
+        // Bild-URL aus ID holen falls vorhanden
+        if ($banner_image_id && !$banner_image_url) {
+            $banner_image_url = wp_get_attachment_url($banner_image_id);
+        }
         ?>
         <div class="bam-metabox-content">
             <p>
                 <label><strong><?php _e('Inhaltstyp:', 'blocksy-ad-manager'); ?></strong></label>
             </p>
-            <p>
-                <label>
+            <p class="bam-content-type-selector">
+                <label class="bam-radio-card <?php echo $content_type === 'html' ? 'active' : ''; ?>">
                     <input type="radio" name="bam_content_type" value="html" <?php checked($content_type, 'html'); ?>>
-                    <?php _e('HTML / Shortcodes', 'blocksy-ad-manager'); ?>
+                    <span class="bam-radio-icon">📝</span>
+                    <span class="bam-radio-label"><?php _e('HTML / Shortcodes', 'blocksy-ad-manager'); ?></span>
                 </label>
-                <label style="margin-left: 20px;">
+                <label class="bam-radio-card <?php echo $content_type === 'php' ? 'active' : ''; ?>">
                     <input type="radio" name="bam_content_type" value="php" <?php checked($content_type, 'php'); ?>>
-                    <?php _e('PHP Code', 'blocksy-ad-manager'); ?>
+                    <span class="bam-radio-icon">⚙️</span>
+                    <span class="bam-radio-label"><?php _e('PHP Code', 'blocksy-ad-manager'); ?></span>
+                </label>
+                <label class="bam-radio-card <?php echo $content_type === 'image' ? 'active' : ''; ?>">
+                    <input type="radio" name="bam_content_type" value="image" <?php checked($content_type, 'image'); ?>>
+                    <span class="bam-radio-icon">🖼️</span>
+                    <span class="bam-radio-label"><?php _e('Banner / Bild', 'blocksy-ad-manager'); ?></span>
                 </label>
             </p>
-            <p class="description">
-                <?php _e('Bei PHP-Code: Ohne öffnende/schließende PHP-Tags eingeben.', 'blocksy-ad-manager'); ?>
-            </p>
-            <p>
-                <textarea name="bam_ad_content" id="bam_ad_content" rows="10" style="width:100%;"><?php echo esc_textarea($content); ?></textarea>
-            </p>
+            
+            <!-- HTML/PHP Content -->
+            <div id="bam_content_code" class="bam-content-section" style="<?php echo $content_type === 'image' ? 'display:none;' : ''; ?>">
+                <p class="description">
+                    <?php _e('Bei PHP-Code: Ohne öffnende/schließende PHP-Tags eingeben.', 'blocksy-ad-manager'); ?>
+                </p>
+                <p>
+                    <textarea name="bam_ad_content" id="bam_ad_content" rows="10" style="width:100%;"><?php echo esc_textarea($content); ?></textarea>
+                </p>
+            </div>
+            
+            <!-- Banner/Image Content -->
+            <div id="bam_content_image" class="bam-content-section bam-banner-settings" style="<?php echo $content_type !== 'image' ? 'display:none;' : ''; ?>">
+                
+                <div class="bam-banner-upload-area">
+                    <div class="bam-banner-preview" id="bam_banner_preview">
+                        <?php if ($banner_image_url): ?>
+                            <img src="<?php echo esc_url($banner_image_url); ?>" alt="<?php echo esc_attr($banner_alt); ?>">
+                            <button type="button" class="bam-banner-remove" id="bam_banner_remove" title="<?php esc_attr_e('Bild entfernen', 'blocksy-ad-manager'); ?>">✕</button>
+                        <?php else: ?>
+                            <div class="bam-banner-placeholder">
+                                <span class="bam-placeholder-icon">📷</span>
+                                <span class="bam-placeholder-text"><?php _e('Kein Bild ausgewählt', 'blocksy-ad-manager'); ?></span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div class="bam-banner-actions">
+                        <button type="button" class="button button-primary" id="bam_banner_upload">
+                            <?php _e('Bild auswählen / hochladen', 'blocksy-ad-manager'); ?>
+                        </button>
+                    </div>
+                    
+                    <input type="hidden" name="bam_banner_image_id" id="bam_banner_image_id" value="<?php echo esc_attr($banner_image_id); ?>">
+                    <input type="hidden" name="bam_banner_image_url" id="bam_banner_image_url" value="<?php echo esc_url($banner_image_url); ?>">
+                </div>
+                
+                <div class="bam-banner-options">
+                    <p>
+                        <label><strong><?php _e('Link-URL:', 'blocksy-ad-manager'); ?></strong></label>
+                        <input type="url" name="bam_banner_link" id="bam_banner_link" value="<?php echo esc_url($banner_link); ?>" style="width:100%;" placeholder="https://example.com">
+                        <span class="description"><?php _e('Wohin soll das Banner verlinken?', 'blocksy-ad-manager'); ?></span>
+                    </p>
+                    
+                    <p>
+                        <label><strong><?php _e('Alt-Text:', 'blocksy-ad-manager'); ?></strong></label>
+                        <input type="text" name="bam_banner_alt" id="bam_banner_alt" value="<?php echo esc_attr($banner_alt); ?>" style="width:100%;" placeholder="<?php esc_attr_e('Beschreibung des Bildes', 'blocksy-ad-manager'); ?>">
+                        <span class="description"><?php _e('Wichtig für SEO und Barrierefreiheit.', 'blocksy-ad-manager'); ?></span>
+                    </p>
+                    
+                    <div class="bam-banner-checkboxes">
+                        <label>
+                            <input type="checkbox" name="bam_banner_new_tab" value="1" <?php checked($banner_new_tab, '1'); ?>>
+                            <?php _e('In neuem Tab öffnen', 'blocksy-ad-manager'); ?>
+                        </label>
+                        
+                        <label>
+                            <input type="checkbox" name="bam_banner_nofollow" value="1" <?php checked($banner_nofollow, '1'); ?>>
+                            <?php _e('Nofollow-Link (rel="nofollow")', 'blocksy-ad-manager'); ?>
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
         <?php
     }
@@ -108,6 +191,15 @@ class BAM_Admin {
         $anchor_max_height_unit = get_post_meta($post->ID, '_bam_anchor_max_height_unit', true) ?: 'px';
         $anchor_allow_close = get_post_meta($post->ID, '_bam_anchor_allow_close', true) ?: '0';
         $anchor_close_duration = get_post_meta($post->ID, '_bam_anchor_close_duration', true) ?: '24';
+        
+        // Modal Settings
+        $modal_delay = get_post_meta($post->ID, '_bam_modal_delay', true) ?: '3';
+        $modal_width = get_post_meta($post->ID, '_bam_modal_width', true) ?: '600';
+        $modal_width_unit = get_post_meta($post->ID, '_bam_modal_width_unit', true) ?: 'px';
+        $modal_allow_dismiss = get_post_meta($post->ID, '_bam_modal_allow_dismiss', true) ?: '1';
+        $modal_dismiss_duration = get_post_meta($post->ID, '_bam_modal_dismiss_duration', true) ?: '24';
+        $modal_close_outside = get_post_meta($post->ID, '_bam_modal_close_outside', true) ?: '1';
+        $modal_show_overlay = get_post_meta($post->ID, '_bam_modal_show_overlay', true) ?: '1';
         ?>
         <div class="bam-metabox-position">
             <p>
@@ -135,11 +227,14 @@ class BAM_Admin {
                     <option value="anchor" <?php selected($position, 'anchor'); ?>>
                         📌 <?php _e('Anchor Ad (fixiert unten)', 'blocksy-ad-manager'); ?>
                     </option>
+                    <option value="modal" <?php selected($position, 'modal'); ?>>
+                        🪟 <?php _e('Modal / Popup', 'blocksy-ad-manager'); ?>
+                    </option>
                 </optgroup>
             </select>
             
             <!-- Paragraph/Heading Settings -->
-            <div id="bam_paragraph_settings" style="margin-top:15px;">
+            <div id="bam_paragraph_settings" class="bam-position-settings" style="margin-top:15px;">
                 <label>
                     <strong><?php _e('Nach Element Nummer:', 'blocksy-ad-manager'); ?></strong>
                 </label>
@@ -179,6 +274,70 @@ class BAM_Admin {
                         <?php _e('Stunden', 'blocksy-ad-manager'); ?>
                         <br>
                         <span class="description"><?php _e('Nach dieser Zeit wird die Anzeige wieder eingeblendet.', 'blocksy-ad-manager'); ?></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Ad Settings -->
+            <div id="bam_modal_settings" class="bam-position-settings" style="margin-top:15px; display:none;">
+                <div class="bam-settings-card">
+                    <h4><?php _e('🪟 Modal Einstellungen', 'blocksy-ad-manager'); ?></h4>
+                    
+                    <p>
+                        <label><strong><?php _e('Verzögerung:', 'blocksy-ad-manager'); ?></strong></label>
+                        <br>
+                        <input type="number" name="bam_modal_delay" value="<?php echo esc_attr($modal_delay); ?>" min="0" max="120" style="width:80px;">
+                        <?php _e('Sekunden', 'blocksy-ad-manager'); ?>
+                        <br>
+                        <span class="description"><?php _e('Nach wie vielen Sekunden soll das Modal erscheinen?', 'blocksy-ad-manager'); ?></span>
+                    </p>
+                    
+                    <p>
+                        <label><strong><?php _e('Modal-Breite:', 'blocksy-ad-manager'); ?></strong></label>
+                        <br>
+                        <input type="number" name="bam_modal_width" value="<?php echo esc_attr($modal_width); ?>" min="200" max="1200" style="width:80px;">
+                        <select name="bam_modal_width_unit" style="width:70px;">
+                            <option value="px" <?php selected($modal_width_unit, 'px'); ?>>px</option>
+                            <option value="vw" <?php selected($modal_width_unit, 'vw'); ?>>vw (%)</option>
+                        </select>
+                    </p>
+                    
+                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e0e0e0;">
+                    
+                    <p>
+                        <label>
+                            <input type="checkbox" name="bam_modal_show_overlay" value="1" <?php checked($modal_show_overlay, '1'); ?>>
+                            <strong><?php _e('Hintergrund abdunkeln', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                    </p>
+                    
+                    <p>
+                        <label>
+                            <input type="checkbox" name="bam_modal_close_outside" value="1" <?php checked($modal_close_outside, '1'); ?>>
+                            <strong><?php _e('Click außerhalb schließt Modal', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                    </p>
+                    
+                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e0e0e0;">
+                    
+                    <p>
+                        <label>
+                            <input type="checkbox" name="bam_modal_allow_dismiss" value="1" <?php checked($modal_allow_dismiss, '1'); ?> id="bam_modal_allow_dismiss_cb">
+                            <strong><?php _e('"Nicht mehr anzeigen" Option', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                        <br>
+                        <span class="description"><?php _e('Zeigt eine Checkbox zum dauerhaften Ausblenden.', 'blocksy-ad-manager'); ?></span>
+                    </p>
+                    
+                    <div id="bam_modal_dismiss_settings" style="margin-top:10px; <?php echo $modal_allow_dismiss !== '1' ? 'display:none;' : ''; ?>">
+                        <label>
+                            <strong><?php _e('Ausblenden für:', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                        <br>
+                        <input type="number" name="bam_modal_dismiss_duration" value="<?php echo esc_attr($modal_dismiss_duration); ?>" min="1" max="720" style="width:80px;">
+                        <?php _e('Stunden', 'blocksy-ad-manager'); ?>
+                        <br>
+                        <span class="description"><?php _e('Nach dieser Zeit wird das Modal wieder angezeigt.', 'blocksy-ad-manager'); ?></span>
                     </div>
                 </div>
             </div>
@@ -306,8 +465,33 @@ class BAM_Admin {
         
         // Content Type
         if (isset($_POST['bam_content_type'])) {
-            update_post_meta($post_id, '_bam_content_type', sanitize_text_field($_POST['bam_content_type']));
+            $content_type = sanitize_text_field($_POST['bam_content_type']);
+            $content_type = in_array($content_type, ['html', 'php', 'image']) ? $content_type : 'html';
+            update_post_meta($post_id, '_bam_content_type', $content_type);
         }
+        
+        // Banner/Image Settings
+        if (isset($_POST['bam_banner_image_id'])) {
+            update_post_meta($post_id, '_bam_banner_image_id', absint($_POST['bam_banner_image_id']));
+        }
+        
+        if (isset($_POST['bam_banner_image_url'])) {
+            update_post_meta($post_id, '_bam_banner_image_url', esc_url_raw($_POST['bam_banner_image_url']));
+        }
+        
+        if (isset($_POST['bam_banner_link'])) {
+            update_post_meta($post_id, '_bam_banner_link', esc_url_raw($_POST['bam_banner_link']));
+        }
+        
+        if (isset($_POST['bam_banner_alt'])) {
+            update_post_meta($post_id, '_bam_banner_alt', sanitize_text_field($_POST['bam_banner_alt']));
+        }
+        
+        $banner_new_tab = isset($_POST['bam_banner_new_tab']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_banner_new_tab', $banner_new_tab);
+        
+        $banner_nofollow = isset($_POST['bam_banner_nofollow']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_banner_nofollow', $banner_nofollow);
         
         // Position
         if (isset($_POST['bam_position'])) {
@@ -335,6 +519,34 @@ class BAM_Admin {
         if (isset($_POST['bam_anchor_close_duration'])) {
             update_post_meta($post_id, '_bam_anchor_close_duration', absint($_POST['bam_anchor_close_duration']));
         }
+        
+        // Modal Settings
+        if (isset($_POST['bam_modal_delay'])) {
+            update_post_meta($post_id, '_bam_modal_delay', absint($_POST['bam_modal_delay']));
+        }
+        
+        if (isset($_POST['bam_modal_width'])) {
+            update_post_meta($post_id, '_bam_modal_width', absint($_POST['bam_modal_width']));
+        }
+        
+        if (isset($_POST['bam_modal_width_unit'])) {
+            $unit = sanitize_text_field($_POST['bam_modal_width_unit']);
+            $unit = in_array($unit, ['px', 'vw']) ? $unit : 'px';
+            update_post_meta($post_id, '_bam_modal_width_unit', $unit);
+        }
+        
+        $modal_allow_dismiss = isset($_POST['bam_modal_allow_dismiss']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_modal_allow_dismiss', $modal_allow_dismiss);
+        
+        if (isset($_POST['bam_modal_dismiss_duration'])) {
+            update_post_meta($post_id, '_bam_modal_dismiss_duration', absint($_POST['bam_modal_dismiss_duration']));
+        }
+        
+        $modal_close_outside = isset($_POST['bam_modal_close_outside']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_modal_close_outside', $modal_close_outside);
+        
+        $modal_show_overlay = isset($_POST['bam_modal_show_overlay']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_modal_show_overlay', $modal_show_overlay);
         
         // Targeting
         $post_types = isset($_POST['bam_post_types']) ? array_map('sanitize_text_field', $_POST['bam_post_types']) : [];
