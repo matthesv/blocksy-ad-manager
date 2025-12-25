@@ -37,13 +37,90 @@ class BAM_Anchor {
             BAM_VERSION
         );
         
-        wp_enqueue_script(
-            'bam-anchor-script',
-            BAM_PLUGIN_URL . 'assets/js/anchor.js',
-            [], // Keine Abhängigkeiten
-            BAM_VERSION,
-            true // Im Footer laden
-        );
+        // Inline JavaScript für maximale Kompatibilität
+        add_action('wp_footer', [$this, 'render_inline_script'], 100);
+    }
+    
+    /**
+     * Rendert das JavaScript inline im Footer
+     */
+    public function render_inline_script() {
+        ?>
+        <script id="bam-anchor-script">
+        (function(){
+            // Storage Helper
+            window.bamStorage = {
+                set: function(key, value, hours) {
+                    try {
+                        var expires = new Date();
+                        expires.setTime(expires.getTime() + (hours * 60 * 60 * 1000));
+                        localStorage.setItem(key, JSON.stringify({
+                            value: value,
+                            expires: expires.getTime()
+                        }));
+                    } catch(e) {
+                        document.cookie = key + '=' + value + ';expires=' + new Date(Date.now() + hours*60*60*1000).toUTCString() + ';path=/';
+                    }
+                },
+                get: function(key) {
+                    try {
+                        var item = localStorage.getItem(key);
+                        if (item) {
+                            var data = JSON.parse(item);
+                            if (data.expires > Date.now()) {
+                                return data.value;
+                            }
+                            localStorage.removeItem(key);
+                        }
+                    } catch(e) {}
+                    return null;
+                },
+                remove: function(key) {
+                    try { localStorage.removeItem(key); } catch(e) {}
+                }
+            };
+            
+            // Toggle Funktion
+            window.bamToggleAnchor = function(adId) {
+                var el = document.querySelector('.bam-anchor-ad-' + adId);
+                if (!el) return;
+                
+                if (el.classList.contains('bam-minimized')) {
+                    el.classList.remove('bam-minimized');
+                    bamStorage.remove('bam_anchor_min_' + adId);
+                } else {
+                    el.classList.add('bam-minimized');
+                    bamStorage.set('bam_anchor_min_' + adId, '1', 24);
+                }
+            };
+            
+            // Close Funktion
+            window.bamCloseAnchor = function(adId, duration) {
+                var el = document.querySelector('.bam-anchor-ad-' + adId);
+                if (!el) return;
+                
+                el.style.display = 'none';
+                bamStorage.set('bam_anchor_closed_' + adId, '1', duration || 24);
+            };
+            
+            // Init: Prüfe gespeicherten Status
+            document.querySelectorAll('.bam-anchor-ad').forEach(function(el) {
+                var adId = el.getAttribute('data-ad-id');
+                
+                // Wurde geschlossen?
+                if (bamStorage.get('bam_anchor_closed_' + adId)) {
+                    el.style.display = 'none';
+                    return;
+                }
+                
+                // Wurde minimiert?
+                if (bamStorage.get('bam_anchor_min_' + adId)) {
+                    el.classList.add('bam-minimized');
+                }
+            });
+        })();
+        </script>
+        <?php
     }
     
     /**
@@ -156,7 +233,7 @@ class BAM_Anchor {
     }
     
     /**
-     * Rendert eine einzelne Anchor Ad mit Tab-Layout
+     * Rendert eine einzelne Anchor Ad mit Inline-Event-Handlern
      */
     private function render_single_anchor_ad($ad) {
         $content_type = get_post_meta($ad->ID, '_bam_content_type', true) ?: 'html';
@@ -200,31 +277,24 @@ class BAM_Anchor {
             esc_attr($max_height_unit)
         );
         
-        // Data Attributes
-        $data_attrs = sprintf(
-            'data-ad-id="%d" data-allow-close="%s" data-close-duration="%s"',
-            $ad->ID,
-            esc_attr($allow_close),
-            esc_attr($close_duration)
-        );
-        
-        // Close Button HTML (nur wenn erlaubt)
+        // Close Button HTML (nur wenn erlaubt) - MIT INLINE ONCLICK
         $close_button_html = '';
         if ($allow_close === '1') {
             $close_button_html = sprintf(
-                '<button type="button" class="bam-anchor-close" aria-label="%s" title="%s">×</button>',
-                esc_attr__('Schließen', 'blocksy-ad-manager'),
+                '<button type="button" class="bam-anchor-close" onclick="bamCloseAnchor(%d, %d); return false;" title="%s">×</button>',
+                $ad->ID,
+                intval($close_duration),
                 esc_attr__('Anzeige schließen', 'blocksy-ad-manager')
             );
         }
         
-        // HTML mit Tab-Layout - KEIN aria-hidden verwenden
+        // HTML mit Inline-Event-Handlern
         $output = sprintf(
-            '<div class="%s" style="%s" %s role="complementary" aria-label="%s">
-                <!-- Tab Bar (oberhalb der Box) -->
+            '<div class="%s" style="%s" data-ad-id="%d">
+                <!-- Tab Bar -->
                 <div class="bam-anchor-tab">
-                    <button type="button" class="bam-anchor-toggle" aria-expanded="true" title="%s">
-                        <span class="bam-anchor-tab-icon" aria-hidden="true">▼</span>
+                    <button type="button" class="bam-anchor-toggle" onclick="bamToggleAnchor(%d); return false;" title="%s">
+                        <span class="bam-anchor-tab-icon">▼</span>
                         <span class="bam-anchor-tab-text-minimize">%s</span>
                         <span class="bam-anchor-tab-text-expand">%s</span>
                     </button>
@@ -237,8 +307,8 @@ class BAM_Anchor {
             </div>',
             esc_attr(implode(' ', $device_classes)),
             $max_height_style,
-            $data_attrs,
-            esc_attr__('Werbeanzeige', 'blocksy-ad-manager'),
+            $ad->ID,
+            $ad->ID, // für onclick
             esc_attr__('Anzeige minimieren oder maximieren', 'blocksy-ad-manager'),
             esc_html__('Minimieren', 'blocksy-ad-manager'),
             esc_html__('Anzeige einblenden', 'blocksy-ad-manager'),
