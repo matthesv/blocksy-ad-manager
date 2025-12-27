@@ -3,6 +3,7 @@
  * 
  * @package Blocksy_Ad_Manager
  * @since 1.3.0
+ * @updated 1.4.0 - Borlabs Cookie Integration
  */
 
 (function() {
@@ -58,6 +59,114 @@
     };
     
     /**
+     * Borlabs Cookie Helper
+     */
+    var BamBorlabsHelper = {
+        /**
+         * Prüft ob Borlabs Cookie auf der Seite aktiv ist
+         */
+        isActive: function() {
+            return typeof window.BorlabsCookie !== 'undefined';
+        },
+        
+        /**
+         * Prüft ob das Cookie-Banner noch angezeigt wird
+         */
+        isBannerVisible: function() {
+            // Methode 1: Borlabs API prüfen
+            if (typeof window.BorlabsCookie !== 'undefined') {
+                // Borlabs Cookie 2.x
+                if (typeof window.BorlabsCookie.checkCookieConsent === 'function') {
+                    return !window.BorlabsCookie.checkCookieConsent('essential');
+                }
+                // Borlabs Cookie 3.x
+                if (typeof window.BorlabsCookie.Consents !== 'undefined') {
+                    return !window.BorlabsCookie.Consents.hasConsent();
+                }
+            }
+            
+            // Methode 2: DOM prüfen (Fallback)
+            var bannerSelectors = [
+                '#BorlabsCookieBox',
+                '.BorlabsCookie',
+                '[data-borlabs-cookie-box]',
+                '#CookieBoxSaveButton'
+            ];
+            
+            for (var i = 0; i < bannerSelectors.length; i++) {
+                var el = document.querySelector(bannerSelectors[i]);
+                if (el) {
+                    var style = window.getComputedStyle(el);
+                    if (style.display !== 'none' && style.visibility !== 'hidden') {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        },
+        
+        /**
+         * Wartet auf das Schließen des Cookie-Banners
+         */
+        onBannerClosed: function(callback) {
+            var self = this;
+            
+            // Wenn Borlabs nicht aktiv ist, sofort ausführen
+            if (!this.isActive()) {
+                callback();
+                return;
+            }
+            
+            // Wenn Banner nicht sichtbar ist, sofort ausführen
+            if (!this.isBannerVisible()) {
+                callback();
+                return;
+            }
+            
+            // Event-Listener für Borlabs Cookie 2.x und 3.x
+            var eventNames = [
+                'borlabs-cookie-consent-saved',
+                'borlabs-cookie-consent-changed'
+            ];
+            
+            var executed = false;
+            var executeCallback = function() {
+                if (!executed) {
+                    executed = true;
+                    callback();
+                }
+            };
+            
+            eventNames.forEach(function(eventName) {
+                document.addEventListener(eventName, executeCallback, { once: true });
+                window.addEventListener(eventName, executeCallback, { once: true });
+            });
+            
+            // Fallback: MutationObserver für DOM-Änderungen
+            var observer = new MutationObserver(function(mutations) {
+                if (!self.isBannerVisible()) {
+                    observer.disconnect();
+                    executeCallback();
+                }
+            });
+            
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['style', 'class']
+            });
+            
+            // Timeout-Fallback (nach 60 Sekunden trotzdem zeigen)
+            setTimeout(function() {
+                observer.disconnect();
+                executeCallback();
+            }, 60000);
+        }
+    };
+    
+    /**
      * Scrollbar Width Calculator
      */
     function getScrollbarWidth() {
@@ -87,6 +196,10 @@
         this.dismissDuration = parseInt(element.getAttribute('data-dismiss-duration'), 10) || 24;
         this.closeOutside = element.getAttribute('data-close-outside') === '1';
         this.showOverlay = element.getAttribute('data-show-overlay') === '1';
+        
+        // Borlabs Cookie Integration
+        this.waitForBorlabs = element.getAttribute('data-wait-borlabs') === '1';
+        this.borlabsExtraDelay = parseInt(element.getAttribute('data-borlabs-extra-delay'), 10) || 0;
         
         this.modal = element.querySelector('.bam-modal');
         this.overlay = element.querySelector('.bam-modal-overlay');
@@ -156,9 +269,33 @@
     BamModalAd.prototype.scheduleOpen = function() {
         var self = this;
         
-        this.timer = setTimeout(function() {
-            self.open();
-        }, this.delay * 1000);
+        /**
+         * Startet den Timer zum Öffnen des Modals
+         */
+        var startOpenTimer = function() {
+            // Normale Verzögerung + Extra-Delay nach Borlabs
+            var totalDelay = self.delay;
+            
+            if (self.waitForBorlabs && self.borlabsExtraDelay > 0) {
+                totalDelay += self.borlabsExtraDelay;
+            }
+            
+            self.timer = setTimeout(function() {
+                self.open();
+            }, totalDelay * 1000);
+        };
+        
+        // Borlabs Cookie Integration
+        if (this.waitForBorlabs && BamBorlabsHelper.isActive()) {
+            // Auf Borlabs Cookie Banner warten
+            BamBorlabsHelper.onBannerClosed(function() {
+                // Nach dem Schließen des Banners den Timer starten
+                startOpenTimer();
+            });
+        } else {
+            // Ohne Borlabs: Timer direkt starten
+            startOpenTimer();
+        }
     };
     
     BamModalAd.prototype.open = function() {
@@ -251,6 +388,7 @@
     
     // Expose to global scope
     window.BamModalAd = BamModalAd;
+    window.BamBorlabsHelper = BamBorlabsHelper;
     
     // Share storage helper if not already defined
     if (!window.BamStorage) {

@@ -12,7 +12,7 @@ Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-
  * Plugin Name: Blocksy Ad Manager
  * Plugin URI: https://github.com/matthesv/blocksy-ad-manager
  * Description: Flexibles Anzeigen-Management für Blocksy Theme
- * Version: 1.0.6
+ * Version: 1.3.2
  * Author: Matthes V.
  * Author URI: https://github.com/matthesv
  * Text Domain: blocksy-ad-manager
@@ -24,7 +24,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('BAM_VERSION', '1.0.6');
+define('BAM_VERSION', '1.3.2');
 define('BAM_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BAM_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BAM_PLUGIN_FILE', __FILE__);
@@ -74,6 +74,10 @@ register_activation_hook(__FILE__, function() {
  
 Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\admin\css\admin-style.css 
  
+/* ==========================================================================
+   Base Metabox Styles
+   ========================================================================== */
+
 .bam-metabox-content,
 .bam-metabox-position,
 .bam-metabox-targeting,
@@ -95,39 +99,1479 @@ Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-
     font-size: 11px;
 }
 
+/* ==========================================================================
+   Content Type Selector (Radio Cards)
+   ========================================================================== */
+
+.bam-content-type-selector {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.bam-radio-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 20px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+    min-width: 120px;
+}
+
+.bam-radio-card:hover {
+    border-color: #2271b1;
+    background: #f6f7f7;
+}
+
+.bam-radio-card.active {
+    border-color: #2271b1;
+    background: #f0f6fc;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+.bam-radio-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.bam-radio-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.bam-radio-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #1d2327;
+    text-align: center;
+}
+
+/* ==========================================================================
+   Banner Upload Area
+   ========================================================================== */
+
+.bam-banner-settings {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.bam-banner-upload-area {
+    margin-bottom: 20px;
+}
+
+.bam-banner-preview {
+    position: relative;
+    background: #fff;
+    border: 2px dashed #ccd0d4;
+    border-radius: 8px;
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+
+.bam-banner-preview:hover {
+    border-color: #2271b1;
+}
+
+.bam-banner-upload-area.bam-drag-over .bam-banner-preview {
+    border-color: #2271b1;
+    background: #f0f6fc;
+}
+
+.bam-banner-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    height: auto;
+    display: block;
+}
+
+.bam-banner-remove {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #dc3232;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.bam-banner-remove:hover {
+    background: #a00;
+    transform: scale(1.1);
+}
+
+.bam-banner-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+    color: #999;
+}
+
+.bam-placeholder-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.bam-placeholder-text {
+    font-size: 14px;
+}
+
+.bam-banner-actions {
+    text-align: center;
+}
+
+.bam-banner-actions .button {
+    padding: 8px 20px;
+    height: auto;
+}
+
+/* ==========================================================================
+   Banner Options
+   ========================================================================== */
+
+.bam-banner-options {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 20px;
+    margin-top: 10px;
+}
+
+.bam-banner-options p {
+    margin-bottom: 15px;
+}
+
+.bam-banner-options label strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.bam-banner-options input[type="url"],
+.bam-banner-options input[type="text"] {
+    padding: 8px 12px;
+}
+
+.bam-banner-options .description {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+}
+
+.bam-banner-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 15px;
+    padding: 15px;
+    background: #fff;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.bam-banner-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   Position Settings Cards
+   ========================================================================== */
+
+.bam-settings-card {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    margin-top: 10px;
+}
+
+.bam-settings-card h4 {
+    margin: 0 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px;
+    color: #1d2327;
+}
+
+.bam-settings-card p {
+    margin-bottom: 12px;
+}
+
+.bam-settings-card label strong {
+    display: inline-block;
+    margin-bottom: 5px;
+}
+
+.bam-settings-card .description {
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* ==========================================================================
+   Paragraph Settings (Legacy)
+   ========================================================================== */
+
 #bam_paragraph_settings {
     background: #f9f9f9;
     padding: 10px;
     border-radius: 4px;
+}
+
+/* ==========================================================================
+   Position Dropdown Styling
+   ========================================================================== */
+
+#bam_position optgroup {
+    font-weight: 600;
+    color: #1d2327;
+}
+
+#bam_position option {
+    padding: 5px;
+}
+
+/* ==========================================================================
+   Responsive Improvements
+   ========================================================================== */
+
+@media screen and (max-width: 782px) {
+    .bam-content-type-selector {
+        flex-direction: column;
+    }
+    
+    .bam-radio-card {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 15px;
+        min-width: 100%;
+    }
+    
+    .bam-radio-icon {
+        margin-bottom: 0;
+    }
+    
+    .bam-settings-card {
+        padding: 12px;
+    }
+    
+    .bam-settings-card input[type="number"] {
+        width: 100% !important;
+        margin-bottom: 8px;
+    }
+    
+    .bam-settings-card select {
+        width: 100% !important;
+    }
+    
+    .bam-banner-checkboxes {
+        flex-direction: column;
+        gap: 12px;
+    }
 }
  
 Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\admin\js\admin-script.js 
  
 jQuery(document).ready(function($) {
     
-    // Position-abhängige Felder ein-/ausblenden
-    function toggleParagraphSettings() {
-        var position = $('#bam_position').val();
-        var showSettings = ['after_paragraph', 'after_heading'].includes(position);
+    /**
+     * Content Type Umschalter
+     */
+    function toggleContentType() {
+        var contentType = $('input[name="bam_content_type"]:checked').val();
         
-        $('#bam_paragraph_settings').toggle(showSettings);
-    }
-    
-    $('#bam_position').on('change', toggleParagraphSettings);
-    toggleParagraphSettings();
-    
-    // Syntax-Highlighting Hinweis für PHP
-    $('input[name="bam_content_type"]').on('change', function() {
-        var isPHP = $(this).val() === 'php';
-        if (isPHP) {
+        // Sections ein-/ausblenden
+        if (contentType === 'image') {
+            $('#bam_content_code').hide();
+            $('#bam_content_image').show();
+        } else {
+            $('#bam_content_code').show();
+            $('#bam_content_image').hide();
+        }
+        
+        // Radio Cards aktiv setzen
+        $('.bam-radio-card').removeClass('active');
+        $('input[name="bam_content_type"]:checked').closest('.bam-radio-card').addClass('active');
+        
+        // Placeholder für Code-Editor
+        if (contentType === 'php') {
             $('#bam_ad_content').attr('placeholder', 
                 'echo "Hallo Welt";\n// PHP Code ohne <?php Tags');
         } else {
             $('#bam_ad_content').attr('placeholder', 
                 '<div class="my-ad">\n  [my_shortcode]\n</div>');
         }
+    }
+    
+    $('input[name="bam_content_type"]').on('change', toggleContentType);
+    toggleContentType();
+    
+    /**
+     * Position-abhängige Felder ein-/ausblenden
+     */
+    function togglePositionSettings() {
+        var position = $('#bam_position').val();
+        
+        // Alle Settings ausblenden
+        $('.bam-position-settings').hide();
+        
+        // Je nach Position einblenden
+        switch(position) {
+            case 'after_paragraph':
+            case 'after_heading':
+                $('#bam_paragraph_settings').show();
+                break;
+            case 'anchor':
+                $('#bam_anchor_settings').show();
+                break;
+            case 'modal':
+                $('#bam_modal_settings').show();
+                break;
+        }
+    }
+    
+    $('#bam_position').on('change', togglePositionSettings);
+    togglePositionSettings();
+    
+    /**
+     * Anchor Close-Einstellungen ein-/ausblenden
+     */
+    function toggleAnchorCloseSettings() {
+        var allowClose = $('input[name="bam_anchor_allow_close"]').is(':checked');
+        $('#bam_anchor_close_settings').toggle(allowClose);
+    }
+    
+    $('input[name="bam_anchor_allow_close"]').on('change', toggleAnchorCloseSettings);
+    toggleAnchorCloseSettings();
+    
+    /**
+     * Modal Dismiss-Einstellungen ein-/ausblenden
+     */
+    function toggleModalDismissSettings() {
+        var allowDismiss = $('#bam_modal_allow_dismiss_cb').is(':checked');
+        $('#bam_modal_dismiss_settings').toggle(allowDismiss);
+    }
+    
+    $('#bam_modal_allow_dismiss_cb').on('change', toggleModalDismissSettings);
+    toggleModalDismissSettings();
+    
+    /**
+     * WordPress Media Uploader für Banner
+     */
+    var mediaUploader;
+    
+    $('#bam_banner_upload').on('click', function(e) {
+        e.preventDefault();
+        
+        // Falls der Uploader bereits erstellt wurde, öffne ihn
+        if (mediaUploader) {
+            mediaUploader.open();
+            return;
+        }
+        
+        // Media Uploader erstellen
+        mediaUploader = wp.media({
+            title: bamAdmin.mediaTitle || 'Banner-Bild auswählen',
+            button: {
+                text: bamAdmin.mediaButton || 'Bild verwenden'
+            },
+            library: {
+                type: 'image'
+            },
+            multiple: false
+        });
+        
+        // Wenn ein Bild ausgewählt wurde
+        mediaUploader.on('select', function() {
+            var attachment = mediaUploader.state().get('selection').first().toJSON();
+            
+            // Versteckte Felder aktualisieren
+            $('#bam_banner_image_id').val(attachment.id);
+            $('#bam_banner_image_url').val(attachment.url);
+            
+            // Alt-Text übernehmen falls vorhanden und Feld leer
+            if (attachment.alt && !$('#bam_banner_alt').val()) {
+                $('#bam_banner_alt').val(attachment.alt);
+            }
+            
+            // Vorschau aktualisieren
+            var previewHtml = '<img src="' + attachment.url + '" alt="' + (attachment.alt || '') + '">';
+            previewHtml += '<button type="button" class="bam-banner-remove" id="bam_banner_remove" title="Bild entfernen">✕</button>';
+            
+            $('#bam_banner_preview').html(previewHtml);
+            
+            // Event-Handler für Remove-Button neu binden
+            bindRemoveButton();
+        });
+        
+        mediaUploader.open();
     });
+    
+    /**
+     * Banner entfernen
+     */
+    function bindRemoveButton() {
+        $('#bam_banner_remove').off('click').on('click', function(e) {
+            e.preventDefault();
+            
+            // Felder zurücksetzen
+            $('#bam_banner_image_id').val('');
+            $('#bam_banner_image_url').val('');
+            
+            // Placeholder anzeigen
+            var placeholderHtml = '<div class="bam-banner-placeholder">';
+            placeholderHtml += '<span class="bam-placeholder-icon">📷</span>';
+            placeholderHtml += '<span class="bam-placeholder-text">Kein Bild ausgewählt</span>';
+            placeholderHtml += '</div>';
+            
+            $('#bam_banner_preview').html(placeholderHtml);
+        });
+    }
+    
+    // Initial binden
+    bindRemoveButton();
+    
+    /**
+     * Drag & Drop Upload-Bereich
+     */
+    var dropZone = $('.bam-banner-upload-area');
+    
+    if (dropZone.length) {
+        dropZone.on('dragover dragenter', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).addClass('bam-drag-over');
+        });
+        
+        dropZone.on('dragleave dragend drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).removeClass('bam-drag-over');
+        });
+        
+        dropZone.on('drop', function(e) {
+            // Trigger den Media Uploader
+            $('#bam_banner_upload').trigger('click');
+        });
+    }
 });
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\assets\css\anchor.css 
+ 
+/**
+ * Anchor Ad Styles
+ * 
+ * @package Blocksy_Ad_Manager
+ * @since 1.3.0
+ */
+
+/* ==========================================================================
+   CSS Variables
+   ========================================================================== */
+
+.bam-anchor-ad {
+    --bam-anchor-max-height: 150px;
+    --bam-anchor-tab-height: 44px;
+    --bam-anchor-bg: #ffffff;
+    --bam-anchor-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    --bam-anchor-border: #e5e7eb;
+    --bam-anchor-tab-bg: #f3f4f6;
+    --bam-anchor-tab-text: #374151;
+    --bam-anchor-transition: 0.35s ease;
+}
+
+/* ==========================================================================
+   Anchor Ad Container
+   ========================================================================== */
+
+.bam-anchor-ad {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 999999 !important;
+    transform: translateY(0);
+    transition: transform var(--bam-anchor-transition);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+/* ==========================================================================
+   Minimized State
+   ========================================================================== */
+
+.bam-anchor-ad.bam-minimized {
+    transform: translateY(calc(100% - var(--bam-anchor-tab-height))) !important;
+}
+
+.bam-anchor-ad.bam-minimized .bam-anchor-tab-text-minimize {
+    display: none !important;
+}
+
+.bam-anchor-ad.bam-minimized .bam-anchor-tab-text-expand {
+    display: inline !important;
+}
+
+.bam-anchor-ad.bam-minimized .bam-anchor-tab-icon {
+    transform: rotate(180deg);
+}
+
+/* ==========================================================================
+   Tab Bar
+   ========================================================================== */
+
+.bam-anchor-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--bam-anchor-tab-height);
+    background: var(--bam-anchor-tab-bg);
+    border-top: 1px solid var(--bam-anchor-border);
+    border-bottom: 1px solid var(--bam-anchor-border);
+    position: relative;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Toggle Button */
+.bam-anchor-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px;
+    padding: 10px 24px !important;
+    border: none !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    color: var(--bam-anchor-tab-text) !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    line-height: 1.4 !important;
+    text-decoration: none !important;
+}
+
+.bam-anchor-toggle:hover {
+    background: #f9fafb !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+}
+
+.bam-anchor-toggle:active {
+    transform: scale(0.98) !important;
+}
+
+.bam-anchor-tab-icon {
+    font-size: 12px;
+    transition: transform 0.3s ease;
+    line-height: 1;
+}
+
+.bam-anchor-tab-text-expand {
+    display: none;
+}
+
+/* Close Button */
+.bam-anchor-close {
+    position: absolute !important;
+    right: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    color: #6b7280 !important;
+    font-size: 20px !important;
+    font-weight: 400 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
+}
+
+.bam-anchor-close:hover {
+    background: #fee2e2 !important;
+    color: #dc2626 !important;
+}
+
+.bam-anchor-close:active {
+    transform: translateY(-50%) scale(0.95) !important;
+}
+
+/* ==========================================================================
+   Content Area
+   ========================================================================== */
+
+.bam-anchor-body {
+    background: var(--bam-anchor-bg);
+    box-shadow: var(--bam-anchor-shadow);
+}
+
+.bam-anchor-content {
+    max-height: var(--bam-anchor-max-height);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px;
+}
+
+.bam-anchor-content img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.bam-anchor-content .bam-banner {
+    text-align: center;
+}
+
+.bam-anchor-content .bam-banner-img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* ==========================================================================
+   Responsive Styles
+   ========================================================================== */
+
+@media (min-width: 1025px) {
+    .bam-anchor-ad {
+        left: 10% !important;
+        right: 10% !important;
+    }
+    
+    .bam-anchor-tab {
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .bam-hide-desktop.bam-anchor-ad {
+        display: none !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .bam-anchor-ad {
+        left: 5% !important;
+        right: 5% !important;
+    }
+    
+    .bam-anchor-tab {
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .bam-hide-tablet.bam-anchor-ad {
+        display: none !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .bam-anchor-ad {
+        left: 0 !important;
+        right: 0 !important;
+    }
+    
+    .bam-anchor-tab {
+        border-radius: 0;
+    }
+    
+    .bam-anchor-content {
+        padding: 12px;
+    }
+    
+    .bam-hide-mobile.bam-anchor-ad {
+        display: none !important;
+    }
+}
+
+/* ==========================================================================
+   Animation
+   ========================================================================== */
+
+@keyframes bam-slide-up {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.bam-anchor-ad {
+    animation: bam-slide-up 0.4s ease forwards;
+}
+
+/* ==========================================================================
+   Dark Mode
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+    .bam-anchor-ad {
+        --bam-anchor-bg: #1f2937;
+        --bam-anchor-border: #374151;
+        --bam-anchor-tab-bg: #111827;
+        --bam-anchor-tab-text: #f3f4f6;
+    }
+    
+    .bam-anchor-toggle {
+        background: #374151 !important;
+        color: #f3f4f6 !important;
+    }
+    
+    .bam-anchor-toggle:hover {
+        background: #4b5563 !important;
+    }
+    
+    .bam-anchor-close {
+        background: #374151 !important;
+        color: #9ca3af !important;
+    }
+    
+    .bam-anchor-close:hover {
+        background: #7f1d1d !important;
+        color: #fca5a5 !important;
+    }
+}
+
+[data-color-mode="dark"] .bam-anchor-ad,
+.dark-mode .bam-anchor-ad {
+    --bam-anchor-bg: #1f2937;
+    --bam-anchor-border: #374151;
+    --bam-anchor-tab-bg: #111827;
+    --bam-anchor-tab-text: #f3f4f6;
+}
+
+[data-color-mode="dark"] .bam-anchor-toggle,
+.dark-mode .bam-anchor-toggle {
+    background: #374151 !important;
+    color: #f3f4f6 !important;
+}
+
+[data-color-mode="dark"] .bam-anchor-close,
+.dark-mode .bam-anchor-close {
+    background: #374151 !important;
+    color: #9ca3af !important;
+}
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\assets\css\modal.css 
+ 
+/**
+ * Modal Ad Styles
+ * 
+ * @package Blocksy_Ad_Manager
+ * @since 1.3.0
+ */
+
+/* ==========================================================================
+   CSS Variables
+   ========================================================================== */
+
+.bam-modal-wrapper {
+    --bam-modal-width: 600px;
+    --bam-modal-max-width: 90vw;
+    --bam-modal-max-height: 90vh;
+    --bam-modal-bg: #ffffff;
+    --bam-modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --bam-modal-border-radius: 16px;
+    --bam-modal-overlay-bg: rgba(0, 0, 0, 0.6);
+    --bam-modal-header-bg: transparent;
+    --bam-modal-footer-bg: #f9fafb;
+    --bam-modal-border-color: #e5e7eb;
+    --bam-modal-text-color: #374151;
+    --bam-modal-close-color: #6b7280;
+    --bam-modal-close-hover: #111827;
+    --bam-modal-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   Modal Wrapper (Hidden by default)
+   ========================================================================== */
+
+.bam-modal-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--bam-modal-transition), visibility var(--bam-modal-transition);
+}
+
+.bam-modal-wrapper.bam-modal-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.bam-modal-wrapper.bam-modal-hidden {
+    display: none !important;
+}
+
+/* ==========================================================================
+   Overlay / Backdrop
+   ========================================================================== */
+
+.bam-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bam-modal-overlay-bg);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+/* ==========================================================================
+   Modal Dialog
+   ========================================================================== */
+
+.bam-modal {
+    position: relative;
+    width: var(--bam-modal-width);
+    max-width: var(--bam-modal-max-width);
+    max-height: var(--bam-modal-max-height);
+    background: var(--bam-modal-bg);
+    border-radius: var(--bam-modal-border-radius);
+    box-shadow: var(--bam-modal-shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.9) translateY(20px);
+    transition: transform var(--bam-modal-transition);
+}
+
+.bam-modal-wrapper.bam-modal-visible .bam-modal {
+    transform: scale(1) translateY(0);
+}
+
+/* ==========================================================================
+   Modal Header
+   ========================================================================== */
+
+.bam-modal-header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 12px;
+    z-index: 10;
+}
+
+.bam-modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--bam-modal-close-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.bam-modal-close:hover {
+    background: #ffffff;
+    color: var(--bam-modal-close-hover);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bam-modal-close:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.bam-modal-close svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* ==========================================================================
+   Modal Body
+   ========================================================================== */
+
+.bam-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+.bam-modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.bam-modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.bam-modal-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.bam-modal-body::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* ==========================================================================
+   Modal Footer
+   ========================================================================== */
+
+.bam-modal-footer {
+    padding: 12px 20px;
+    background: var(--bam-modal-footer-bg);
+    border-top: 1px solid var(--bam-modal-border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bam-modal-footer:empty {
+    display: none;
+}
+
+.bam-modal-dismiss-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--bam-modal-text-color);
+    user-select: none;
+}
+
+.bam-modal-dismiss-label:hover {
+    color: #111827;
+}
+
+.bam-modal-dismiss-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+}
+
+/* ==========================================================================
+   Banner Content Styles
+   ========================================================================== */
+
+.bam-modal-banner {
+    text-align: center;
+    line-height: 0;
+}
+
+.bam-modal-banner-link {
+    display: block;
+    transition: opacity 0.2s ease;
+}
+
+.bam-modal-banner-link:hover {
+    opacity: 0.95;
+}
+
+.bam-modal-banner-img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: var(--bam-modal-border-radius) var(--bam-modal-border-radius) 0 0;
+}
+
+/* Wenn kein Footer vorhanden */
+.bam-modal-footer:empty + .bam-modal-body .bam-modal-banner-img,
+.bam-modal-body:last-child .bam-modal-banner-img {
+    border-radius: var(--bam-modal-border-radius);
+}
+
+/* ==========================================================================
+   HTML/Text Content Styles
+   ========================================================================== */
+
+.bam-modal-body > *:not(.bam-modal-banner) {
+    padding: 24px;
+}
+
+.bam-modal-body p:first-child {
+    margin-top: 0;
+}
+
+.bam-modal-body p:last-child {
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Responsive Styles
+   ========================================================================== */
+
+/* Desktop */
+@media (min-width: 1025px) {
+    .bam-hide-desktop.bam-modal-wrapper {
+        display: none !important;
+    }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .bam-modal-wrapper {
+        padding: 15px;
+    }
+    
+    .bam-modal {
+        --bam-modal-border-radius: 12px;
+    }
+    
+    .bam-hide-tablet.bam-modal-wrapper {
+        display: none !important;
+    }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+    .bam-modal-wrapper {
+        padding: 10px;
+        align-items: flex-end;
+    }
+    
+    .bam-modal {
+        --bam-modal-width: 100%;
+        --bam-modal-max-width: 100%;
+        --bam-modal-border-radius: 16px 16px 0 0;
+        max-height: 85vh;
+    }
+    
+    .bam-modal-close {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .bam-modal-close svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .bam-modal-body > *:not(.bam-modal-banner) {
+        padding: 16px;
+    }
+    
+    .bam-modal-footer {
+        padding: 10px 16px;
+    }
+    
+    .bam-modal-banner-img {
+        border-radius: 16px 16px 0 0;
+    }
+    
+    .bam-hide-mobile.bam-modal-wrapper {
+        display: none !important;
+    }
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+
+@keyframes bam-modal-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes bam-modal-slide-up {
+    from {
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Mobile slide-up animation */
+@media (max-width: 767px) {
+    @keyframes bam-modal-slide-up-mobile {
+        from {
+            transform: translateY(100%);
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+    
+    .bam-modal-wrapper.bam-modal-visible .bam-modal {
+        animation: bam-modal-slide-up-mobile 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+}
+
+/* ==========================================================================
+   Dark Mode Support
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+    .bam-modal-wrapper {
+        --bam-modal-bg: #1f2937;
+        --bam-modal-overlay-bg: rgba(0, 0, 0, 0.75);
+        --bam-modal-footer-bg: #111827;
+        --bam-modal-border-color: #374151;
+        --bam-modal-text-color: #e5e7eb;
+        --bam-modal-close-color: #9ca3af;
+        --bam-modal-close-hover: #f3f4f6;
+    }
+    
+    .bam-modal-close {
+        background: rgba(31, 41, 55, 0.9);
+    }
+    
+    .bam-modal-close:hover {
+        background: #374151;
+    }
+    
+    .bam-modal-body::-webkit-scrollbar-track {
+        background: #374151;
+    }
+    
+    .bam-modal-body::-webkit-scrollbar-thumb {
+        background: #6b7280;
+    }
+}
+
+/* Blocksy Dark Mode Class */
+[data-color-mode="dark"] .bam-modal-wrapper,
+.dark-mode .bam-modal-wrapper {
+    --bam-modal-bg: #1f2937;
+    --bam-modal-overlay-bg: rgba(0, 0, 0, 0.75);
+    --bam-modal-footer-bg: #111827;
+    --bam-modal-border-color: #374151;
+    --bam-modal-text-color: #e5e7eb;
+    --bam-modal-close-color: #9ca3af;
+    --bam-modal-close-hover: #f3f4f6;
+}
+
+[data-color-mode="dark"] .bam-modal-close,
+.dark-mode .bam-modal-close {
+    background: rgba(31, 41, 55, 0.9);
+}
+
+[data-color-mode="dark"] .bam-modal-close:hover,
+.dark-mode .bam-modal-close:hover {
+    background: #374151;
+}
+
+/* ==========================================================================
+   Body Scroll Lock when Modal is open
+   ========================================================================== */
+
+body.bam-modal-open {
+    overflow: hidden;
+    padding-right: var(--bam-scrollbar-width, 0);
+}
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\assets\js\modal.js 
+ 
+/**
+ * Modal Ad JavaScript
+ * 
+ * @package Blocksy_Ad_Manager
+ * @since 1.3.0
+ */
+
+(function() {
+    'use strict';
+    
+    /**
+     * Storage Helper (same as anchor.js)
+     */
+    var BamStorage = {
+        set: function(key, value, hours) {
+            var expires = new Date();
+            expires.setTime(expires.getTime() + (hours * 60 * 60 * 1000));
+            
+            try {
+                localStorage.setItem(key, JSON.stringify({
+                    value: value,
+                    expires: expires.getTime()
+                }));
+            } catch (e) {
+                document.cookie = key + '=' + value + ';expires=' + expires.toUTCString() + ';path=/;SameSite=Lax';
+            }
+        },
+        
+        get: function(key) {
+            try {
+                var item = localStorage.getItem(key);
+                if (item) {
+                    var data = JSON.parse(item);
+                    if (data.expires > Date.now()) {
+                        return data.value;
+                    }
+                    localStorage.removeItem(key);
+                }
+            } catch (e) {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.indexOf(key + '=') === 0) {
+                        return cookie.substring(key.length + 1);
+                    }
+                }
+            }
+            return null;
+        },
+        
+        remove: function(key) {
+            try {
+                localStorage.removeItem(key);
+            } catch (e) {
+                document.cookie = key + '=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;';
+            }
+        }
+    };
+    
+    /**
+     * Scrollbar Width Calculator
+     */
+    function getScrollbarWidth() {
+        var outer = document.createElement('div');
+        outer.style.visibility = 'hidden';
+        outer.style.overflow = 'scroll';
+        outer.style.msOverflowStyle = 'scrollbar';
+        document.body.appendChild(outer);
+        
+        var inner = document.createElement('div');
+        outer.appendChild(inner);
+        
+        var scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
+        outer.parentNode.removeChild(outer);
+        
+        return scrollbarWidth;
+    }
+    
+    /**
+     * Modal Ad Controller
+     */
+    function BamModalAd(element) {
+        this.element = element;
+        this.adId = element.getAttribute('data-ad-id');
+        this.delay = parseInt(element.getAttribute('data-delay'), 10) || 3;
+        this.allowDismiss = element.getAttribute('data-allow-dismiss') === '1';
+        this.dismissDuration = parseInt(element.getAttribute('data-dismiss-duration'), 10) || 24;
+        this.closeOutside = element.getAttribute('data-close-outside') === '1';
+        this.showOverlay = element.getAttribute('data-show-overlay') === '1';
+        
+        this.modal = element.querySelector('.bam-modal');
+        this.overlay = element.querySelector('.bam-modal-overlay');
+        this.closeBtn = element.querySelector('.bam-modal-close');
+        this.dismissCheckbox = element.querySelector('.bam-modal-dismiss-checkbox');
+        
+        this.storageKeyDismissed = 'bam_modal_dismissed_' + this.adId;
+        this.isOpen = false;
+        this.timer = null;
+        
+        this.init();
+    }
+    
+    BamModalAd.prototype.init = function() {
+        var self = this;
+        
+        // Check if modal was dismissed
+        if (BamStorage.get(this.storageKeyDismissed)) {
+            this.element.classList.add('bam-modal-hidden');
+            return;
+        }
+        
+        // Hide overlay if disabled
+        if (!this.showOverlay && this.overlay) {
+            this.overlay.style.background = 'transparent';
+            this.overlay.style.backdropFilter = 'none';
+        }
+        
+        this.bindEvents();
+        this.scheduleOpen();
+    };
+    
+    BamModalAd.prototype.bindEvents = function() {
+        var self = this;
+        
+        // Close button
+        if (this.closeBtn) {
+            this.closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                self.close();
+            });
+        }
+        
+        // Click outside to close
+        if (this.closeOutside && this.overlay) {
+            this.overlay.addEventListener('click', function(e) {
+                e.preventDefault();
+                self.close();
+            });
+        }
+        
+        // ESC key to close
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && self.isOpen) {
+                self.close();
+            }
+        });
+        
+        // Prevent clicks inside modal from closing
+        if (this.modal) {
+            this.modal.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+    };
+    
+    BamModalAd.prototype.scheduleOpen = function() {
+        var self = this;
+        
+        this.timer = setTimeout(function() {
+            self.open();
+        }, this.delay * 1000);
+    };
+    
+    BamModalAd.prototype.open = function() {
+        if (this.isOpen) return;
+        
+        this.isOpen = true;
+        
+        // Lock body scroll
+        var scrollbarWidth = getScrollbarWidth();
+        document.documentElement.style.setProperty('--bam-scrollbar-width', scrollbarWidth + 'px');
+        document.body.classList.add('bam-modal-open');
+        
+        // Show modal
+        this.element.classList.add('bam-modal-visible');
+        this.element.setAttribute('aria-hidden', 'false');
+        
+        // Focus close button for accessibility
+        if (this.closeBtn) {
+            this.closeBtn.focus();
+        }
+        
+        // Trigger event
+        var event = new CustomEvent('bam:modal:opened', {
+            detail: { adId: this.adId }
+        });
+        this.element.dispatchEvent(event);
+    };
+    
+    BamModalAd.prototype.close = function() {
+        var self = this;
+        
+        if (!this.isOpen) return;
+        
+        this.isOpen = false;
+        
+        // Check if "Don't show again" is checked
+        if (this.allowDismiss && this.dismissCheckbox && this.dismissCheckbox.checked) {
+            BamStorage.set(this.storageKeyDismissed, '1', this.dismissDuration);
+        }
+        
+        // Hide modal
+        this.element.classList.remove('bam-modal-visible');
+        this.element.setAttribute('aria-hidden', 'true');
+        
+        // Unlock body scroll
+        document.body.classList.remove('bam-modal-open');
+        document.documentElement.style.removeProperty('--bam-scrollbar-width');
+        
+        // Trigger event
+        var event = new CustomEvent('bam:modal:closed', {
+            detail: { adId: this.adId }
+        });
+        this.element.dispatchEvent(event);
+        
+        // Remove from DOM after animation
+        setTimeout(function() {
+            if (self.element && self.element.parentNode) {
+                self.element.classList.add('bam-modal-hidden');
+            }
+        }, 350);
+    };
+    
+    BamModalAd.prototype.destroy = function() {
+        if (this.timer) {
+            clearTimeout(this.timer);
+        }
+        
+        if (this.isOpen) {
+            document.body.classList.remove('bam-modal-open');
+        }
+    };
+    
+    /**
+     * Initialize all Modal Ads
+     */
+    function initModalAds() {
+        var modalAds = document.querySelectorAll('.bam-modal-wrapper');
+        
+        for (var i = 0; i < modalAds.length; i++) {
+            new BamModalAd(modalAds[i]);
+        }
+    }
+    
+    // Initialize on DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initModalAds);
+    } else {
+        initModalAds();
+    }
+    
+    // Expose to global scope
+    window.BamModalAd = BamModalAd;
+    
+    // Share storage helper if not already defined
+    if (!window.BamStorage) {
+        window.BamStorage = BamStorage;
+    }
+    
+})();
  
 Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\includes\class-ad-manager-admin.php 
  
@@ -145,6 +1589,9 @@ class BAM_Admin {
             return;
         }
         
+        // Media Uploader für Bilder
+        wp_enqueue_media();
+        
         wp_enqueue_style(
             'bam-admin-style',
             BAM_PLUGIN_URL . 'admin/css/admin-style.css',
@@ -159,6 +1606,12 @@ class BAM_Admin {
             BAM_VERSION,
             true
         );
+        
+        // Lokalisierung für JS
+        wp_localize_script('bam-admin-script', 'bamAdmin', [
+            'mediaTitle'  => __('Banner-Bild auswählen', 'blocksy-ad-manager'),
+            'mediaButton' => __('Bild verwenden', 'blocksy-ad-manager'),
+        ]);
     }
     
     public function add_meta_boxes() {
@@ -204,27 +1657,104 @@ class BAM_Admin {
         
         $content = get_post_meta($post->ID, '_bam_ad_content', true);
         $content_type = get_post_meta($post->ID, '_bam_content_type', true) ?: 'html';
+        
+        // Banner/Image Settings
+        $banner_image_id = get_post_meta($post->ID, '_bam_banner_image_id', true);
+        $banner_image_url = get_post_meta($post->ID, '_bam_banner_image_url', true);
+        $banner_link = get_post_meta($post->ID, '_bam_banner_link', true);
+        $banner_alt = get_post_meta($post->ID, '_bam_banner_alt', true);
+        $banner_new_tab = get_post_meta($post->ID, '_bam_banner_new_tab', true) ?: '1';
+        $banner_nofollow = get_post_meta($post->ID, '_bam_banner_nofollow', true) ?: '0';
+        
+        // Bild-URL aus ID holen falls vorhanden
+        if ($banner_image_id && !$banner_image_url) {
+            $banner_image_url = wp_get_attachment_url($banner_image_id);
+        }
         ?>
         <div class="bam-metabox-content">
             <p>
                 <label><strong><?php _e('Inhaltstyp:', 'blocksy-ad-manager'); ?></strong></label>
             </p>
-            <p>
-                <label>
+            <p class="bam-content-type-selector">
+                <label class="bam-radio-card <?php echo $content_type === 'html' ? 'active' : ''; ?>">
                     <input type="radio" name="bam_content_type" value="html" <?php checked($content_type, 'html'); ?>>
-                    <?php _e('HTML / Shortcodes', 'blocksy-ad-manager'); ?>
+                    <span class="bam-radio-icon">📝</span>
+                    <span class="bam-radio-label"><?php _e('HTML / Shortcodes', 'blocksy-ad-manager'); ?></span>
                 </label>
-                <label style="margin-left: 20px;">
+                <label class="bam-radio-card <?php echo $content_type === 'php' ? 'active' : ''; ?>">
                     <input type="radio" name="bam_content_type" value="php" <?php checked($content_type, 'php'); ?>>
-                    <?php _e('PHP Code', 'blocksy-ad-manager'); ?>
+                    <span class="bam-radio-icon">⚙️</span>
+                    <span class="bam-radio-label"><?php _e('PHP Code', 'blocksy-ad-manager'); ?></span>
+                </label>
+                <label class="bam-radio-card <?php echo $content_type === 'image' ? 'active' : ''; ?>">
+                    <input type="radio" name="bam_content_type" value="image" <?php checked($content_type, 'image'); ?>>
+                    <span class="bam-radio-icon">🖼️</span>
+                    <span class="bam-radio-label"><?php _e('Banner / Bild', 'blocksy-ad-manager'); ?></span>
                 </label>
             </p>
-            <p class="description">
-                <?php _e('Bei PHP-Code: Ohne öffnende/schließende PHP-Tags eingeben.', 'blocksy-ad-manager'); ?>
-            </p>
-            <p>
-                <textarea name="bam_ad_content" id="bam_ad_content" rows="10" style="width:100%;"><?php echo esc_textarea($content); ?></textarea>
-            </p>
+            
+            <!-- HTML/PHP Content -->
+            <div id="bam_content_code" class="bam-content-section" style="<?php echo $content_type === 'image' ? 'display:none;' : ''; ?>">
+                <p class="description">
+                    <?php _e('Bei PHP-Code: Ohne öffnende/schließende PHP-Tags eingeben.', 'blocksy-ad-manager'); ?>
+                </p>
+                <p>
+                    <textarea name="bam_ad_content" id="bam_ad_content" rows="10" style="width:100%;"><?php echo esc_textarea($content); ?></textarea>
+                </p>
+            </div>
+            
+            <!-- Banner/Image Content -->
+            <div id="bam_content_image" class="bam-content-section bam-banner-settings" style="<?php echo $content_type !== 'image' ? 'display:none;' : ''; ?>">
+                
+                <div class="bam-banner-upload-area">
+                    <div class="bam-banner-preview" id="bam_banner_preview">
+                        <?php if ($banner_image_url): ?>
+                            <img src="<?php echo esc_url($banner_image_url); ?>" alt="<?php echo esc_attr($banner_alt); ?>">
+                            <button type="button" class="bam-banner-remove" id="bam_banner_remove" title="<?php esc_attr_e('Bild entfernen', 'blocksy-ad-manager'); ?>">✕</button>
+                        <?php else: ?>
+                            <div class="bam-banner-placeholder">
+                                <span class="bam-placeholder-icon">📷</span>
+                                <span class="bam-placeholder-text"><?php _e('Kein Bild ausgewählt', 'blocksy-ad-manager'); ?></span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div class="bam-banner-actions">
+                        <button type="button" class="button button-primary" id="bam_banner_upload">
+                            <?php _e('Bild auswählen / hochladen', 'blocksy-ad-manager'); ?>
+                        </button>
+                    </div>
+                    
+                    <input type="hidden" name="bam_banner_image_id" id="bam_banner_image_id" value="<?php echo esc_attr($banner_image_id); ?>">
+                    <input type="hidden" name="bam_banner_image_url" id="bam_banner_image_url" value="<?php echo esc_url($banner_image_url); ?>">
+                </div>
+                
+                <div class="bam-banner-options">
+                    <p>
+                        <label><strong><?php _e('Link-URL:', 'blocksy-ad-manager'); ?></strong></label>
+                        <input type="url" name="bam_banner_link" id="bam_banner_link" value="<?php echo esc_url($banner_link); ?>" style="width:100%;" placeholder="https://example.com">
+                        <span class="description"><?php _e('Wohin soll das Banner verlinken?', 'blocksy-ad-manager'); ?></span>
+                    </p>
+                    
+                    <p>
+                        <label><strong><?php _e('Alt-Text:', 'blocksy-ad-manager'); ?></strong></label>
+                        <input type="text" name="bam_banner_alt" id="bam_banner_alt" value="<?php echo esc_attr($banner_alt); ?>" style="width:100%;" placeholder="<?php esc_attr_e('Beschreibung des Bildes', 'blocksy-ad-manager'); ?>">
+                        <span class="description"><?php _e('Wichtig für SEO und Barrierefreiheit.', 'blocksy-ad-manager'); ?></span>
+                    </p>
+                    
+                    <div class="bam-banner-checkboxes">
+                        <label>
+                            <input type="checkbox" name="bam_banner_new_tab" value="1" <?php checked($banner_new_tab, '1'); ?>>
+                            <?php _e('In neuem Tab öffnen', 'blocksy-ad-manager'); ?>
+                        </label>
+                        
+                        <label>
+                            <input type="checkbox" name="bam_banner_nofollow" value="1" <?php checked($banner_nofollow, '1'); ?>>
+                            <?php _e('Nofollow-Link (rel="nofollow")', 'blocksy-ad-manager'); ?>
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
         <?php
     }
@@ -232,34 +1762,161 @@ class BAM_Admin {
     public function render_position_metabox($post) {
         $position = get_post_meta($post->ID, '_bam_position', true) ?: 'after_paragraph';
         $paragraph_number = get_post_meta($post->ID, '_bam_paragraph_number', true) ?: 2;
+        
+        // Anchor Settings
+        $anchor_max_height = get_post_meta($post->ID, '_bam_anchor_max_height', true) ?: '150';
+        $anchor_max_height_unit = get_post_meta($post->ID, '_bam_anchor_max_height_unit', true) ?: 'px';
+        $anchor_allow_close = get_post_meta($post->ID, '_bam_anchor_allow_close', true) ?: '0';
+        $anchor_close_duration = get_post_meta($post->ID, '_bam_anchor_close_duration', true) ?: '24';
+        
+        // Modal Settings
+        $modal_delay = get_post_meta($post->ID, '_bam_modal_delay', true) ?: '3';
+        $modal_width = get_post_meta($post->ID, '_bam_modal_width', true) ?: '600';
+        $modal_width_unit = get_post_meta($post->ID, '_bam_modal_width_unit', true) ?: 'px';
+        $modal_allow_dismiss = get_post_meta($post->ID, '_bam_modal_allow_dismiss', true) ?: '1';
+        $modal_dismiss_duration = get_post_meta($post->ID, '_bam_modal_dismiss_duration', true) ?: '24';
+        $modal_close_outside = get_post_meta($post->ID, '_bam_modal_close_outside', true) ?: '1';
+        $modal_show_overlay = get_post_meta($post->ID, '_bam_modal_show_overlay', true) ?: '1';
         ?>
         <div class="bam-metabox-position">
             <p>
                 <label><strong><?php _e('Position:', 'blocksy-ad-manager'); ?></strong></label>
             </p>
             <select name="bam_position" id="bam_position" style="width:100%;">
-                <option value="after_paragraph" <?php selected($position, 'after_paragraph'); ?>>
-                    <?php _e('Nach Absatz X', 'blocksy-ad-manager'); ?>
-                </option>
-                <option value="before_content" <?php selected($position, 'before_content'); ?>>
-                    <?php _e('Vor dem Inhalt', 'blocksy-ad-manager'); ?>
-                </option>
-                <option value="after_content" <?php selected($position, 'after_content'); ?>>
-                    <?php _e('Nach dem Inhalt', 'blocksy-ad-manager'); ?>
-                </option>
-                <option value="after_heading" <?php selected($position, 'after_heading'); ?>>
-                    <?php _e('Nach Überschrift X', 'blocksy-ad-manager'); ?>
-                </option>
-                <option value="middle_content" <?php selected($position, 'middle_content'); ?>>
-                    <?php _e('Mitte des Inhalts', 'blocksy-ad-manager'); ?>
-                </option>
+                <optgroup label="<?php esc_attr_e('Im Inhalt', 'blocksy-ad-manager'); ?>">
+                    <option value="after_paragraph" <?php selected($position, 'after_paragraph'); ?>>
+                        <?php _e('Nach Absatz X', 'blocksy-ad-manager'); ?>
+                    </option>
+                    <option value="before_content" <?php selected($position, 'before_content'); ?>>
+                        <?php _e('Vor dem Inhalt', 'blocksy-ad-manager'); ?>
+                    </option>
+                    <option value="after_content" <?php selected($position, 'after_content'); ?>>
+                        <?php _e('Nach dem Inhalt', 'blocksy-ad-manager'); ?>
+                    </option>
+                    <option value="after_heading" <?php selected($position, 'after_heading'); ?>>
+                        <?php _e('Nach Überschrift X', 'blocksy-ad-manager'); ?>
+                    </option>
+                    <option value="middle_content" <?php selected($position, 'middle_content'); ?>>
+                        <?php _e('Mitte des Inhalts', 'blocksy-ad-manager'); ?>
+                    </option>
+                </optgroup>
+                <optgroup label="<?php esc_attr_e('Spezielle Formate', 'blocksy-ad-manager'); ?>">
+                    <option value="anchor" <?php selected($position, 'anchor'); ?>>
+                        📌 <?php _e('Anchor Ad (fixiert unten)', 'blocksy-ad-manager'); ?>
+                    </option>
+                    <option value="modal" <?php selected($position, 'modal'); ?>>
+                        🪟 <?php _e('Modal / Popup', 'blocksy-ad-manager'); ?>
+                    </option>
+                </optgroup>
             </select>
             
-            <div id="bam_paragraph_settings" style="margin-top:15px;">
+            <!-- Paragraph/Heading Settings -->
+            <div id="bam_paragraph_settings" class="bam-position-settings" style="margin-top:15px;">
                 <label>
                     <strong><?php _e('Nach Element Nummer:', 'blocksy-ad-manager'); ?></strong>
                 </label>
                 <input type="number" name="bam_paragraph_number" value="<?php echo esc_attr($paragraph_number); ?>" min="1" max="50" style="width:80px;">
+            </div>
+            
+            <!-- Anchor Ad Settings -->
+            <div id="bam_anchor_settings" class="bam-position-settings" style="margin-top:15px; display:none;">
+                <div class="bam-settings-card">
+                    <h4><?php _e('📐 Anchor Ad Einstellungen', 'blocksy-ad-manager'); ?></h4>
+                    
+                    <p>
+                        <label><strong><?php _e('Maximale Höhe:', 'blocksy-ad-manager'); ?></strong></label>
+                        <br>
+                        <input type="number" name="bam_anchor_max_height" value="<?php echo esc_attr($anchor_max_height); ?>" min="50" max="500" style="width:80px;">
+                        <select name="bam_anchor_max_height_unit" style="width:70px;">
+                            <option value="px" <?php selected($anchor_max_height_unit, 'px'); ?>>px</option>
+                            <option value="vh" <?php selected($anchor_max_height_unit, 'vh'); ?>>vh (%)</option>
+                        </select>
+                    </p>
+                    
+                    <p>
+                        <label>
+                            <input type="checkbox" name="bam_anchor_allow_close" value="1" <?php checked($anchor_allow_close, '1'); ?>>
+                            <strong><?php _e('Schließen erlauben', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                        <br>
+                        <span class="description"><?php _e('Benutzer kann die Anzeige dauerhaft ausblenden.', 'blocksy-ad-manager'); ?></span>
+                    </p>
+                    
+                    <div id="bam_anchor_close_settings" style="margin-top:10px; <?php echo $anchor_allow_close !== '1' ? 'display:none;' : ''; ?>">
+                        <label>
+                            <strong><?php _e('Ausblenden für:', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                        <br>
+                        <input type="number" name="bam_anchor_close_duration" value="<?php echo esc_attr($anchor_close_duration); ?>" min="1" max="720" style="width:80px;">
+                        <?php _e('Stunden', 'blocksy-ad-manager'); ?>
+                        <br>
+                        <span class="description"><?php _e('Nach dieser Zeit wird die Anzeige wieder eingeblendet.', 'blocksy-ad-manager'); ?></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Ad Settings -->
+            <div id="bam_modal_settings" class="bam-position-settings" style="margin-top:15px; display:none;">
+                <div class="bam-settings-card">
+                    <h4><?php _e('🪟 Modal Einstellungen', 'blocksy-ad-manager'); ?></h4>
+                    
+                    <p>
+                        <label><strong><?php _e('Verzögerung:', 'blocksy-ad-manager'); ?></strong></label>
+                        <br>
+                        <input type="number" name="bam_modal_delay" value="<?php echo esc_attr($modal_delay); ?>" min="0" max="120" style="width:80px;">
+                        <?php _e('Sekunden', 'blocksy-ad-manager'); ?>
+                        <br>
+                        <span class="description"><?php _e('Nach wie vielen Sekunden soll das Modal erscheinen?', 'blocksy-ad-manager'); ?></span>
+                    </p>
+                    
+                    <p>
+                        <label><strong><?php _e('Modal-Breite:', 'blocksy-ad-manager'); ?></strong></label>
+                        <br>
+                        <input type="number" name="bam_modal_width" value="<?php echo esc_attr($modal_width); ?>" min="200" max="1200" style="width:80px;">
+                        <select name="bam_modal_width_unit" style="width:70px;">
+                            <option value="px" <?php selected($modal_width_unit, 'px'); ?>>px</option>
+                            <option value="vw" <?php selected($modal_width_unit, 'vw'); ?>>vw (%)</option>
+                        </select>
+                    </p>
+                    
+                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e0e0e0;">
+                    
+                    <p>
+                        <label>
+                            <input type="checkbox" name="bam_modal_show_overlay" value="1" <?php checked($modal_show_overlay, '1'); ?>>
+                            <strong><?php _e('Hintergrund abdunkeln', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                    </p>
+                    
+                    <p>
+                        <label>
+                            <input type="checkbox" name="bam_modal_close_outside" value="1" <?php checked($modal_close_outside, '1'); ?>>
+                            <strong><?php _e('Click außerhalb schließt Modal', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                    </p>
+                    
+                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e0e0e0;">
+                    
+                    <p>
+                        <label>
+                            <input type="checkbox" name="bam_modal_allow_dismiss" value="1" <?php checked($modal_allow_dismiss, '1'); ?> id="bam_modal_allow_dismiss_cb">
+                            <strong><?php _e('"Nicht mehr anzeigen" Option', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                        <br>
+                        <span class="description"><?php _e('Zeigt eine Checkbox zum dauerhaften Ausblenden.', 'blocksy-ad-manager'); ?></span>
+                    </p>
+                    
+                    <div id="bam_modal_dismiss_settings" style="margin-top:10px; <?php echo $modal_allow_dismiss !== '1' ? 'display:none;' : ''; ?>">
+                        <label>
+                            <strong><?php _e('Ausblenden für:', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                        <br>
+                        <input type="number" name="bam_modal_dismiss_duration" value="<?php echo esc_attr($modal_dismiss_duration); ?>" min="1" max="720" style="width:80px;">
+                        <?php _e('Stunden', 'blocksy-ad-manager'); ?>
+                        <br>
+                        <span class="description"><?php _e('Nach dieser Zeit wird das Modal wieder angezeigt.', 'blocksy-ad-manager'); ?></span>
+                    </div>
+                </div>
             </div>
         </div>
         <?php
@@ -385,8 +2042,33 @@ class BAM_Admin {
         
         // Content Type
         if (isset($_POST['bam_content_type'])) {
-            update_post_meta($post_id, '_bam_content_type', sanitize_text_field($_POST['bam_content_type']));
+            $content_type = sanitize_text_field($_POST['bam_content_type']);
+            $content_type = in_array($content_type, ['html', 'php', 'image']) ? $content_type : 'html';
+            update_post_meta($post_id, '_bam_content_type', $content_type);
         }
+        
+        // Banner/Image Settings
+        if (isset($_POST['bam_banner_image_id'])) {
+            update_post_meta($post_id, '_bam_banner_image_id', absint($_POST['bam_banner_image_id']));
+        }
+        
+        if (isset($_POST['bam_banner_image_url'])) {
+            update_post_meta($post_id, '_bam_banner_image_url', esc_url_raw($_POST['bam_banner_image_url']));
+        }
+        
+        if (isset($_POST['bam_banner_link'])) {
+            update_post_meta($post_id, '_bam_banner_link', esc_url_raw($_POST['bam_banner_link']));
+        }
+        
+        if (isset($_POST['bam_banner_alt'])) {
+            update_post_meta($post_id, '_bam_banner_alt', sanitize_text_field($_POST['bam_banner_alt']));
+        }
+        
+        $banner_new_tab = isset($_POST['bam_banner_new_tab']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_banner_new_tab', $banner_new_tab);
+        
+        $banner_nofollow = isset($_POST['bam_banner_nofollow']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_banner_nofollow', $banner_nofollow);
         
         // Position
         if (isset($_POST['bam_position'])) {
@@ -396,6 +2078,52 @@ class BAM_Admin {
         if (isset($_POST['bam_paragraph_number'])) {
             update_post_meta($post_id, '_bam_paragraph_number', absint($_POST['bam_paragraph_number']));
         }
+        
+        // Anchor Settings
+        if (isset($_POST['bam_anchor_max_height'])) {
+            update_post_meta($post_id, '_bam_anchor_max_height', absint($_POST['bam_anchor_max_height']));
+        }
+        
+        if (isset($_POST['bam_anchor_max_height_unit'])) {
+            $unit = sanitize_text_field($_POST['bam_anchor_max_height_unit']);
+            $unit = in_array($unit, ['px', 'vh']) ? $unit : 'px';
+            update_post_meta($post_id, '_bam_anchor_max_height_unit', $unit);
+        }
+        
+        $anchor_allow_close = isset($_POST['bam_anchor_allow_close']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_anchor_allow_close', $anchor_allow_close);
+        
+        if (isset($_POST['bam_anchor_close_duration'])) {
+            update_post_meta($post_id, '_bam_anchor_close_duration', absint($_POST['bam_anchor_close_duration']));
+        }
+        
+        // Modal Settings
+        if (isset($_POST['bam_modal_delay'])) {
+            update_post_meta($post_id, '_bam_modal_delay', absint($_POST['bam_modal_delay']));
+        }
+        
+        if (isset($_POST['bam_modal_width'])) {
+            update_post_meta($post_id, '_bam_modal_width', absint($_POST['bam_modal_width']));
+        }
+        
+        if (isset($_POST['bam_modal_width_unit'])) {
+            $unit = sanitize_text_field($_POST['bam_modal_width_unit']);
+            $unit = in_array($unit, ['px', 'vw']) ? $unit : 'px';
+            update_post_meta($post_id, '_bam_modal_width_unit', $unit);
+        }
+        
+        $modal_allow_dismiss = isset($_POST['bam_modal_allow_dismiss']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_modal_allow_dismiss', $modal_allow_dismiss);
+        
+        if (isset($_POST['bam_modal_dismiss_duration'])) {
+            update_post_meta($post_id, '_bam_modal_dismiss_duration', absint($_POST['bam_modal_dismiss_duration']));
+        }
+        
+        $modal_close_outside = isset($_POST['bam_modal_close_outside']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_modal_close_outside', $modal_close_outside);
+        
+        $modal_show_overlay = isset($_POST['bam_modal_show_overlay']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_modal_show_overlay', $modal_show_overlay);
         
         // Targeting
         $post_types = isset($_POST['bam_post_types']) ? array_map('sanitize_text_field', $_POST['bam_post_types']) : [];
@@ -418,6 +2146,427 @@ class BAM_Admin {
         // Active Status
         $is_active = isset($_POST['bam_is_active']) ? '1' : '0';
         update_post_meta($post_id, '_bam_is_active', $is_active);
+    }
+}
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\includes\class-ad-manager-anchor.php 
+ 
+<?php
+/**
+ * Anchor Ad Functionality
+ * 
+ * @package Blocksy_Ad_Manager
+ * @since 1.3.0
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class BAM_Anchor {
+    
+    /**
+     * Initialisiert die Anchor Ad Hooks
+     */
+    public function init() {
+        add_action('wp_footer', [$this, 'render_anchor_ads'], 99);
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
+    }
+    
+    /**
+     * Lädt CSS und JS für Anchor Ads
+     */
+    public function enqueue_assets() {
+        $has_anchor_ads = $this->has_active_anchor_ads();
+        
+        if (!$has_anchor_ads) {
+            return;
+        }
+        
+        wp_enqueue_style(
+            'bam-anchor-style',
+            BAM_PLUGIN_URL . 'assets/css/anchor.css',
+            [],
+            BAM_VERSION
+        );
+        
+        // Inline JavaScript für maximale Kompatibilität
+        add_action('wp_footer', [$this, 'render_inline_script'], 100);
+    }
+    
+    /**
+     * Rendert das JavaScript inline im Footer
+     */
+    public function render_inline_script() {
+        ?>
+        <script id="bam-anchor-script">
+        (function(){
+            // Storage Helper
+            window.bamStorage = {
+                set: function(key, value, hours) {
+                    try {
+                        var expires = new Date();
+                        expires.setTime(expires.getTime() + (hours * 60 * 60 * 1000));
+                        localStorage.setItem(key, JSON.stringify({
+                            value: value,
+                            expires: expires.getTime()
+                        }));
+                    } catch(e) {
+                        document.cookie = key + '=' + value + ';expires=' + new Date(Date.now() + hours*60*60*1000).toUTCString() + ';path=/';
+                    }
+                },
+                get: function(key) {
+                    try {
+                        var item = localStorage.getItem(key);
+                        if (item) {
+                            var data = JSON.parse(item);
+                            if (data.expires > Date.now()) {
+                                return data.value;
+                            }
+                            localStorage.removeItem(key);
+                        }
+                    } catch(e) {}
+                    return null;
+                },
+                remove: function(key) {
+                    try { localStorage.removeItem(key); } catch(e) {}
+                }
+            };
+            
+            // Toggle Funktion
+            window.bamToggleAnchor = function(adId) {
+                var el = document.querySelector('.bam-anchor-ad-' + adId);
+                if (!el) return;
+                
+                if (el.classList.contains('bam-minimized')) {
+                    el.classList.remove('bam-minimized');
+                    bamStorage.remove('bam_anchor_min_' + adId);
+                } else {
+                    el.classList.add('bam-minimized');
+                    bamStorage.set('bam_anchor_min_' + adId, '1', 24);
+                }
+            };
+            
+            // Close Funktion
+            window.bamCloseAnchor = function(adId, duration) {
+                var el = document.querySelector('.bam-anchor-ad-' + adId);
+                if (!el) return;
+                
+                el.style.display = 'none';
+                bamStorage.set('bam_anchor_closed_' + adId, '1', duration || 24);
+            };
+            
+            // Init: Prüfe gespeicherten Status
+            document.querySelectorAll('.bam-anchor-ad').forEach(function(el) {
+                var adId = el.getAttribute('data-ad-id');
+                
+                // Wurde geschlossen?
+                if (bamStorage.get('bam_anchor_closed_' + adId)) {
+                    el.style.display = 'none';
+                    return;
+                }
+                
+                // Wurde minimiert?
+                if (bamStorage.get('bam_anchor_min_' + adId)) {
+                    el.classList.add('bam-minimized');
+                }
+            });
+        })();
+        </script>
+        <?php
+    }
+    
+    /**
+     * Prüft ob aktive Anchor Ads vorhanden sind
+     */
+    private function has_active_anchor_ads() {
+        $ads = get_posts([
+            'post_type'      => BAM_Post_Type::POST_TYPE,
+            'posts_per_page' => 1,
+            'post_status'    => 'publish',
+            'fields'         => 'ids',
+            'meta_query'     => [
+                'relation' => 'AND',
+                [
+                    'key'   => '_bam_position',
+                    'value' => 'anchor',
+                ],
+                [
+                    'relation' => 'OR',
+                    [
+                        'key'     => '_bam_is_active',
+                        'value'   => '1',
+                        'compare' => '=',
+                    ],
+                    [
+                        'key'     => '_bam_is_active',
+                        'compare' => 'NOT EXISTS',
+                    ],
+                ],
+            ],
+        ]);
+        
+        return !empty($ads);
+    }
+    
+    /**
+     * Rendert alle Anchor Ads im Footer
+     */
+    public function render_anchor_ads() {
+        if (is_admin() || wp_doing_ajax()) {
+            return;
+        }
+        
+        global $post;
+        
+        $args = [
+            'post_type'      => BAM_Post_Type::POST_TYPE,
+            'posts_per_page' => -1,
+            'post_status'    => 'publish',
+            'meta_query'     => [
+                'relation' => 'AND',
+                [
+                    'key'   => '_bam_position',
+                    'value' => 'anchor',
+                ],
+                [
+                    'relation' => 'OR',
+                    [
+                        'key'     => '_bam_is_active',
+                        'value'   => '1',
+                        'compare' => '=',
+                    ],
+                    [
+                        'key'     => '_bam_is_active',
+                        'compare' => 'NOT EXISTS',
+                    ],
+                ],
+            ],
+        ];
+        
+        $anchor_ads = get_posts($args);
+        
+        foreach ($anchor_ads as $ad) {
+            if ($this->should_display_anchor_ad($ad, $post)) {
+                echo $this->render_single_anchor_ad($ad);
+            }
+        }
+    }
+    
+    /**
+     * Prüft ob eine Anchor Ad angezeigt werden soll
+     */
+    private function should_display_anchor_ad($ad, $current_post) {
+        $is_active = get_post_meta($ad->ID, '_bam_is_active', true);
+        if ($is_active === '0') {
+            return false;
+        }
+        
+        if (!$current_post) {
+            return true;
+        }
+        
+        $allowed_post_types = get_post_meta($ad->ID, '_bam_post_types', true);
+        if (!empty($allowed_post_types) && is_array($allowed_post_types)) {
+            if (is_singular() && !in_array($current_post->post_type, $allowed_post_types)) {
+                return false;
+            }
+        }
+        
+        $exclude_ids = get_post_meta($ad->ID, '_bam_exclude_ids', true);
+        if (!empty($exclude_ids) && is_singular()) {
+            $excluded = array_map('trim', explode(',', $exclude_ids));
+            $excluded = array_map('intval', $excluded);
+            if (in_array($current_post->ID, $excluded)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Rendert eine einzelne Anchor Ad mit Inline-Event-Handlern
+     */
+    private function render_single_anchor_ad($ad) {
+        $content_type = get_post_meta($ad->ID, '_bam_content_type', true) ?: 'html';
+        $devices = get_post_meta($ad->ID, '_bam_devices', true);
+        $max_height_value = get_post_meta($ad->ID, '_bam_anchor_max_height', true) ?: '150';
+        $max_height_unit = get_post_meta($ad->ID, '_bam_anchor_max_height_unit', true) ?: 'px';
+        $allow_close = get_post_meta($ad->ID, '_bam_anchor_allow_close', true) ?: '0';
+        $close_duration = get_post_meta($ad->ID, '_bam_anchor_close_duration', true) ?: '24';
+        
+        if (empty($devices) || !is_array($devices)) {
+            $devices = ['desktop', 'tablet', 'mobile'];
+        }
+        
+        // Content basierend auf Typ rendern
+        if ($content_type === 'image') {
+            $rendered_content = $this->render_banner_content($ad);
+        } else {
+            $rendered_content = $this->render_code_content($ad, $content_type);
+        }
+        
+        if (empty(trim($rendered_content))) {
+            return '';
+        }
+        
+        // Device Classes
+        $device_classes = ['bam-anchor-ad', 'bam-anchor-ad-' . $ad->ID];
+        
+        if (!in_array('desktop', $devices)) {
+            $device_classes[] = 'bam-hide-desktop';
+        }
+        if (!in_array('tablet', $devices)) {
+            $device_classes[] = 'bam-hide-tablet';
+        }
+        if (!in_array('mobile', $devices)) {
+            $device_classes[] = 'bam-hide-mobile';
+        }
+        
+        // Max Height Style
+        $max_height_style = sprintf('--bam-anchor-max-height: %s%s;', 
+            esc_attr($max_height_value), 
+            esc_attr($max_height_unit)
+        );
+        
+        // Close Button HTML (nur wenn erlaubt) - MIT INLINE ONCLICK
+        $close_button_html = '';
+        if ($allow_close === '1') {
+            $close_button_html = sprintf(
+                '<button type="button" class="bam-anchor-close" onclick="bamCloseAnchor(%d, %d); return false;" title="%s">×</button>',
+                $ad->ID,
+                intval($close_duration),
+                esc_attr__('Anzeige schließen', 'blocksy-ad-manager')
+            );
+        }
+        
+        // HTML mit Inline-Event-Handlern
+        $output = sprintf(
+            '<div class="%s" style="%s" data-ad-id="%d">
+                <!-- Tab Bar -->
+                <div class="bam-anchor-tab">
+                    <button type="button" class="bam-anchor-toggle" onclick="bamToggleAnchor(%d); return false;" title="%s">
+                        <span class="bam-anchor-tab-icon">▼</span>
+                        <span class="bam-anchor-tab-text-minimize">%s</span>
+                        <span class="bam-anchor-tab-text-expand">%s</span>
+                    </button>
+                    %s
+                </div>
+                <!-- Content Body -->
+                <div class="bam-anchor-body">
+                    <div class="bam-anchor-content">%s</div>
+                </div>
+            </div>',
+            esc_attr(implode(' ', $device_classes)),
+            $max_height_style,
+            $ad->ID,
+            $ad->ID, // für onclick
+            esc_attr__('Anzeige minimieren oder maximieren', 'blocksy-ad-manager'),
+            esc_html__('Minimieren', 'blocksy-ad-manager'),
+            esc_html__('Anzeige einblenden', 'blocksy-ad-manager'),
+            $close_button_html,
+            $rendered_content
+        );
+        
+        return $output;
+    }
+    
+    /**
+     * Rendert Banner/Bild-Content für Anchor Ad
+     */
+    private function render_banner_content($ad) {
+        $image_url = get_post_meta($ad->ID, '_bam_banner_image_url', true);
+        $image_id = get_post_meta($ad->ID, '_bam_banner_image_id', true);
+        $link_url = get_post_meta($ad->ID, '_bam_banner_link', true);
+        $alt_text = get_post_meta($ad->ID, '_bam_banner_alt', true);
+        $new_tab = get_post_meta($ad->ID, '_bam_banner_new_tab', true) === '1';
+        $nofollow = get_post_meta($ad->ID, '_bam_banner_nofollow', true) === '1';
+        
+        if (empty($image_url) && empty($image_id)) {
+            return '';
+        }
+        
+        if ($image_id && !$image_url) {
+            $image_url = wp_get_attachment_url($image_id);
+        }
+        
+        if (empty($image_url)) {
+            return '';
+        }
+        
+        // Bild-HTML erstellen
+        $image_html = '';
+        
+        if ($image_id) {
+            $image_html = wp_get_attachment_image($image_id, 'large', false, [
+                'class' => 'bam-banner-img',
+                'alt'   => $alt_text,
+            ]);
+        } else {
+            $image_html = sprintf(
+                '<img src="%s" alt="%s" class="bam-banner-img" loading="lazy">',
+                esc_url($image_url),
+                esc_attr($alt_text)
+            );
+        }
+        
+        // Ohne Link
+        if (empty($link_url)) {
+            return sprintf('<div class="bam-banner">%s</div>', $image_html);
+        }
+        
+        // Mit Link
+        $link_attrs = [];
+        $link_attrs[] = sprintf('href="%s"', esc_url($link_url));
+        $link_attrs[] = 'class="bam-banner-link"';
+        
+        if ($new_tab) {
+            $link_attrs[] = 'target="_blank"';
+        }
+        
+        $rel = [];
+        if ($new_tab) {
+            $rel[] = 'noopener';
+            $rel[] = 'noreferrer';
+        }
+        if ($nofollow) {
+            $rel[] = 'nofollow';
+        }
+        if (!empty($rel)) {
+            $link_attrs[] = sprintf('rel="%s"', implode(' ', $rel));
+        }
+        
+        return sprintf(
+            '<div class="bam-banner"><a %s>%s</a></div>',
+            implode(' ', $link_attrs),
+            $image_html
+        );
+    }
+    
+    /**
+     * Rendert HTML/PHP-Content für Anchor Ad
+     */
+    private function render_code_content($ad, $content_type) {
+        $content = get_post_meta($ad->ID, '_bam_ad_content', true);
+        
+        if (empty($content)) {
+            return '';
+        }
+        
+        if ($content_type === 'php') {
+            ob_start();
+            try {
+                eval('?>' . $content);
+            } catch (Exception $e) {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    echo '<!-- BAM Anchor Error: ' . esc_html($e->getMessage()) . ' -->';
+                }
+            }
+            return ob_get_clean();
+        } else {
+            return do_shortcode($content);
+        }
     }
 }
  
@@ -473,15 +2622,31 @@ class BAM_Frontend {
             'posts_per_page' => -1,
             'post_status'    => 'publish',
             'meta_query'     => [
-                'relation' => 'OR',
+                'relation' => 'AND',
                 [
-                    'key'     => '_bam_is_active',
-                    'value'   => '1',
-                    'compare' => '=',
+                    'relation' => 'OR',
+                    [
+                        'key'     => '_bam_is_active',
+                        'value'   => '1',
+                        'compare' => '=',
+                    ],
+                    [
+                        'key'     => '_bam_is_active',
+                        'compare' => 'NOT EXISTS',
+                    ],
                 ],
+                // Anchor Ads ausschließen (werden separat behandelt)
                 [
-                    'key'     => '_bam_is_active',
-                    'compare' => 'NOT EXISTS',
+                    'relation' => 'OR',
+                    [
+                        'key'     => '_bam_position',
+                        'value'   => 'anchor',
+                        'compare' => '!=',
+                    ],
+                    [
+                        'key'     => '_bam_position',
+                        'compare' => 'NOT EXISTS',
+                    ],
                 ],
             ],
             'orderby'        => 'menu_order',
@@ -590,29 +2755,24 @@ class BAM_Frontend {
      * Fügt Anzeige nach dem X. Absatz ein
      */
     private function insert_after_paragraph($content, $ad_html, $paragraph_number) {
-        // Finde alle </p> Tags (auch mit Gutenberg-Kommentaren)
         $closing_p = '</p>';
         $paragraphs = explode($closing_p, $content);
         
-        // Wenn nicht genug Absätze vorhanden, am Ende einfügen
-        $total_paragraphs = count($paragraphs) - 1; // -1 weil explode ein leeres Element am Ende erzeugt
+        $total_paragraphs = count($paragraphs) - 1;
         
         if ($total_paragraphs < $paragraph_number) {
             return $content . $ad_html;
         }
         
-        // Content neu zusammenbauen
         $output = '';
         
         for ($i = 0; $i < count($paragraphs); $i++) {
             $output .= $paragraphs[$i];
             
-            // Nicht nach dem letzten Element
             if ($i < count($paragraphs) - 1) {
                 $output .= $closing_p;
             }
             
-            // Nach dem gewünschten Absatz einfügen
             if ($i + 1 === $paragraph_number) {
                 $output .= $ad_html;
             }
@@ -625,21 +2785,17 @@ class BAM_Frontend {
      * Fügt Anzeige nach der X. Überschrift ein
      */
     private function insert_after_heading($content, $ad_html, $heading_number) {
-        // Pattern für alle Überschriften (h1-h6)
         $pattern = '/(<\/h[1-6]>)/i';
         
-        // Alle Überschriften finden
         preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE);
         
         if (empty($matches[0]) || count($matches[0]) < $heading_number) {
             return $content . $ad_html;
         }
         
-        // Position nach der X. Überschrift
         $match = $matches[0][$heading_number - 1];
         $insert_position = $match[1] + strlen($match[0]);
         
-        // Content aufteilen und Anzeige einfügen
         $before = substr($content, 0, $insert_position);
         $after = substr($content, $insert_position);
         
@@ -667,12 +2823,6 @@ class BAM_Frontend {
      * Rendert eine einzelne Anzeige
      */
     public function render_ad($ad) {
-        $content = get_post_meta($ad->ID, '_bam_ad_content', true);
-        
-        if (empty($content)) {
-            return '';
-        }
-        
         $content_type = get_post_meta($ad->ID, '_bam_content_type', true) ?: 'html';
         $devices = get_post_meta($ad->ID, '_bam_devices', true);
         
@@ -694,21 +2844,11 @@ class BAM_Frontend {
             $device_classes[] = 'bam-hide-mobile';
         }
         
-        // Content verarbeiten
-        if ($content_type === 'php') {
-            ob_start();
-            try {
-                eval('?>' . $content);
-            } catch (Exception $e) {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    echo '<!-- BAM Error: ' . esc_html($e->getMessage()) . ' -->';
-                }
-            }
-            $rendered_content = ob_get_clean();
+        // Content basierend auf Typ rendern
+        if ($content_type === 'image') {
+            $rendered_content = $this->render_banner_content($ad);
         } else {
-            // HTML mit Shortcodes
-            // Shortcodes explizit ausführen (für Borlabs etc.)
-            $rendered_content = do_shortcode($content);
+            $rendered_content = $this->render_code_content($ad, $content_type);
         }
         
         if (empty(trim($rendered_content))) {
@@ -721,15 +2861,116 @@ class BAM_Frontend {
             $rendered_content
         );
     }
-
-
-
     
     /**
-     * CSS für Geräte-Sichtbarkeit
+     * Rendert Banner/Bild-Content
+     */
+    private function render_banner_content($ad) {
+        $image_url = get_post_meta($ad->ID, '_bam_banner_image_url', true);
+        $image_id = get_post_meta($ad->ID, '_bam_banner_image_id', true);
+        $link_url = get_post_meta($ad->ID, '_bam_banner_link', true);
+        $alt_text = get_post_meta($ad->ID, '_bam_banner_alt', true);
+        $new_tab = get_post_meta($ad->ID, '_bam_banner_new_tab', true) === '1';
+        $nofollow = get_post_meta($ad->ID, '_bam_banner_nofollow', true) === '1';
+        
+        // Kein Bild vorhanden
+        if (empty($image_url) && empty($image_id)) {
+            return '';
+        }
+        
+        // Bild-URL aus ID holen (für bessere Kompatibilität)
+        if ($image_id && !$image_url) {
+            $image_url = wp_get_attachment_url($image_id);
+        }
+        
+        if (empty($image_url)) {
+            return '';
+        }
+        
+        // Responsive Bild mit srcset falls möglich
+        $image_html = '';
+        
+        if ($image_id) {
+            // WordPress responsive image
+            $image_html = wp_get_attachment_image($image_id, 'full', false, [
+                'class' => 'bam-banner-img',
+                'alt'   => $alt_text,
+            ]);
+        } else {
+            // Fallback: einfaches img-Tag
+            $image_html = sprintf(
+                '<img src="%s" alt="%s" class="bam-banner-img" loading="lazy">',
+                esc_url($image_url),
+                esc_attr($alt_text)
+            );
+        }
+        
+        // Ohne Link
+        if (empty($link_url)) {
+            return sprintf(
+                '<div class="bam-banner">%s</div>',
+                $image_html
+            );
+        }
+        
+        // Mit Link
+        $link_attrs = [];
+        $link_attrs[] = sprintf('href="%s"', esc_url($link_url));
+        $link_attrs[] = 'class="bam-banner-link"';
+        
+        if ($new_tab) {
+            $link_attrs[] = 'target="_blank"';
+        }
+        
+        // Rel-Attribute
+        $rel = [];
+        if ($new_tab) {
+            $rel[] = 'noopener';
+            $rel[] = 'noreferrer';
+        }
+        if ($nofollow) {
+            $rel[] = 'nofollow';
+        }
+        if (!empty($rel)) {
+            $link_attrs[] = sprintf('rel="%s"', implode(' ', $rel));
+        }
+        
+        return sprintf(
+            '<div class="bam-banner"><a %s>%s</a></div>',
+            implode(' ', $link_attrs),
+            $image_html
+        );
+    }
+    
+    /**
+     * Rendert HTML/PHP-Content
+     */
+    private function render_code_content($ad, $content_type) {
+        $content = get_post_meta($ad->ID, '_bam_ad_content', true);
+        
+        if (empty($content)) {
+            return '';
+        }
+        
+        if ($content_type === 'php') {
+            ob_start();
+            try {
+                eval('?>' . $content);
+            } catch (Exception $e) {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    echo '<!-- BAM Error: ' . esc_html($e->getMessage()) . ' -->';
+                }
+            }
+            return ob_get_clean();
+        } else {
+            return do_shortcode($content);
+        }
+    }
+    
+    /**
+     * CSS für Geräte-Sichtbarkeit und Banner
      */
     public function add_device_styles() {
-        // Nur wenn Anzeigen existieren
         $has_ads = get_posts([
             'post_type'      => BAM_Post_Type::POST_TYPE,
             'posts_per_page' => 1,
@@ -745,6 +2986,28 @@ class BAM_Frontend {
             .bam-ad-container {
                 margin: 1.5em 0;
                 clear: both;
+            }
+            
+            /* Banner Styles */
+            .bam-banner {
+                text-align: center;
+            }
+            
+            .bam-banner-link {
+                display: inline-block;
+                transition: opacity 0.2s ease;
+            }
+            
+            .bam-banner-link:hover {
+                opacity: 0.9;
+            }
+            
+            .bam-banner-img {
+                max-width: 100%;
+                height: auto;
+                display: block;
+                margin: 0 auto;
+                border-radius: 4px;
             }
             
             /* Desktop (> 1024px) */
@@ -863,6 +3126,8 @@ class BAM_Loader {
     private $post_type;
     private $admin;
     private $frontend;
+    private $anchor;
+    private $modal;
     
     public function __construct() {
         $this->load_dependencies();
@@ -873,10 +3138,14 @@ class BAM_Loader {
         require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-post-type.php';
         require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-admin.php';
         require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-frontend.php';
+        require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-anchor.php';
+        require_once BAM_PLUGIN_DIR . 'includes/class-ad-manager-modal.php';
         
         $this->post_type = new BAM_Post_Type();
         $this->admin = new BAM_Admin();
         $this->frontend = new BAM_Frontend();
+        $this->anchor = new BAM_Anchor();
+        $this->modal = new BAM_Modal();
     }
     
     public function run() {
@@ -893,6 +3162,386 @@ class BAM_Loader {
         // Frontend Hooks
         add_filter('the_content', [$this->frontend, 'insert_ads'], 20);
         add_action('wp_head', [$this->frontend, 'add_device_styles']);
+        
+        // Anchor Ads
+        $this->anchor->init();
+        
+        // Modal Ads
+        $this->modal->init();
+    }
+}
+ 
+Beginn des Codes C:\Users\rando\OneDrive\Dokumente\Websites\matthesv.de\blocksy-ad-manager\includes\class-ad-manager-modal.php 
+ 
+<?php
+/**
+ * Modal Ad Functionality
+ * 
+ * @package Blocksy_Ad_Manager
+ * @since 1.3.0
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class BAM_Modal {
+    
+    /**
+     * Initialisiert die Modal Ad Hooks
+     */
+    public function init() {
+        add_action('wp_footer', [$this, 'render_modal_ads']);
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
+    }
+    
+    /**
+     * Lädt CSS und JS für Modal Ads
+     */
+    public function enqueue_assets() {
+        $has_modal_ads = $this->has_active_modal_ads();
+        
+        if (!$has_modal_ads) {
+            return;
+        }
+        
+        wp_enqueue_style(
+            'bam-modal-style',
+            BAM_PLUGIN_URL . 'assets/css/modal.css',
+            [],
+            BAM_VERSION
+        );
+        
+        wp_enqueue_script(
+            'bam-modal-script',
+            BAM_PLUGIN_URL . 'assets/js/modal.js',
+            [],
+            BAM_VERSION,
+            true
+        );
+        
+        wp_localize_script('bam-modal-script', 'bamModal', [
+            'closeText'       => __('Schließen', 'blocksy-ad-manager'),
+            'dontShowText'    => __('Nicht mehr anzeigen', 'blocksy-ad-manager'),
+        ]);
+    }
+    
+    /**
+     * Prüft ob aktive Modal Ads vorhanden sind
+     */
+    private function has_active_modal_ads() {
+        $ads = get_posts([
+            'post_type'      => BAM_Post_Type::POST_TYPE,
+            'posts_per_page' => 1,
+            'post_status'    => 'publish',
+            'fields'         => 'ids',
+            'meta_query'     => [
+                'relation' => 'AND',
+                [
+                    'key'   => '_bam_position',
+                    'value' => 'modal',
+                ],
+                [
+                    'relation' => 'OR',
+                    [
+                        'key'     => '_bam_is_active',
+                        'value'   => '1',
+                        'compare' => '=',
+                    ],
+                    [
+                        'key'     => '_bam_is_active',
+                        'compare' => 'NOT EXISTS',
+                    ],
+                ],
+            ],
+        ]);
+        
+        return !empty($ads);
+    }
+    
+    /**
+     * Rendert alle Modal Ads im Footer
+     */
+    public function render_modal_ads() {
+        if (is_admin() || wp_doing_ajax()) {
+            return;
+        }
+        
+        global $post;
+        
+        $args = [
+            'post_type'      => BAM_Post_Type::POST_TYPE,
+            'posts_per_page' => -1,
+            'post_status'    => 'publish',
+            'meta_query'     => [
+                'relation' => 'AND',
+                [
+                    'key'   => '_bam_position',
+                    'value' => 'modal',
+                ],
+                [
+                    'relation' => 'OR',
+                    [
+                        'key'     => '_bam_is_active',
+                        'value'   => '1',
+                        'compare' => '=',
+                    ],
+                    [
+                        'key'     => '_bam_is_active',
+                        'compare' => 'NOT EXISTS',
+                    ],
+                ],
+            ],
+        ];
+        
+        $modal_ads = get_posts($args);
+        
+        foreach ($modal_ads as $ad) {
+            if ($this->should_display_modal_ad($ad, $post)) {
+                echo $this->render_single_modal_ad($ad);
+            }
+        }
+    }
+    
+    /**
+     * Prüft ob eine Modal Ad angezeigt werden soll
+     */
+    private function should_display_modal_ad($ad, $current_post) {
+        $is_active = get_post_meta($ad->ID, '_bam_is_active', true);
+        if ($is_active === '0') {
+            return false;
+        }
+        
+        if (!$current_post) {
+            return true;
+        }
+        
+        $allowed_post_types = get_post_meta($ad->ID, '_bam_post_types', true);
+        if (!empty($allowed_post_types) && is_array($allowed_post_types)) {
+            if (is_singular() && !in_array($current_post->post_type, $allowed_post_types)) {
+                return false;
+            }
+        }
+        
+        $exclude_ids = get_post_meta($ad->ID, '_bam_exclude_ids', true);
+        if (!empty($exclude_ids) && is_singular()) {
+            $excluded = array_map('trim', explode(',', $exclude_ids));
+            $excluded = array_map('intval', $excluded);
+            if (in_array($current_post->ID, $excluded)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Rendert eine einzelne Modal Ad
+     */
+    private function render_single_modal_ad($ad) {
+        $content_type = get_post_meta($ad->ID, '_bam_content_type', true) ?: 'html';
+        $devices = get_post_meta($ad->ID, '_bam_devices', true);
+        
+        // Modal Settings
+        $modal_delay = get_post_meta($ad->ID, '_bam_modal_delay', true) ?: '3';
+        $modal_width = get_post_meta($ad->ID, '_bam_modal_width', true) ?: '600';
+        $modal_width_unit = get_post_meta($ad->ID, '_bam_modal_width_unit', true) ?: 'px';
+        $modal_allow_dismiss = get_post_meta($ad->ID, '_bam_modal_allow_dismiss', true) ?: '1';
+        $modal_dismiss_duration = get_post_meta($ad->ID, '_bam_modal_dismiss_duration', true) ?: '24';
+        $modal_close_outside = get_post_meta($ad->ID, '_bam_modal_close_outside', true) ?: '1';
+        $modal_show_overlay = get_post_meta($ad->ID, '_bam_modal_show_overlay', true) ?: '1';
+        
+        if (empty($devices) || !is_array($devices)) {
+            $devices = ['desktop', 'tablet', 'mobile'];
+        }
+        
+        // Content basierend auf Typ rendern
+        if ($content_type === 'image') {
+            $rendered_content = $this->render_banner_content($ad);
+        } else {
+            $rendered_content = $this->render_code_content($ad, $content_type);
+        }
+        
+        if (empty(trim($rendered_content))) {
+            return '';
+        }
+        
+        // Device Classes
+        $device_classes = ['bam-modal-wrapper', 'bam-modal-wrapper-' . $ad->ID];
+        
+        if (!in_array('desktop', $devices)) {
+            $device_classes[] = 'bam-hide-desktop';
+        }
+        if (!in_array('tablet', $devices)) {
+            $device_classes[] = 'bam-hide-tablet';
+        }
+        if (!in_array('mobile', $devices)) {
+            $device_classes[] = 'bam-hide-mobile';
+        }
+        
+        // Modal Width Style
+        $modal_style = sprintf('--bam-modal-width: %s%s;', 
+            esc_attr($modal_width), 
+            esc_attr($modal_width_unit)
+        );
+        
+        // Data Attributes
+        $data_attrs = sprintf(
+            'data-ad-id="%d" data-delay="%s" data-allow-dismiss="%s" data-dismiss-duration="%s" data-close-outside="%s" data-show-overlay="%s"',
+            $ad->ID,
+            esc_attr($modal_delay),
+            esc_attr($modal_allow_dismiss),
+            esc_attr($modal_dismiss_duration),
+            esc_attr($modal_close_outside),
+            esc_attr($modal_show_overlay)
+        );
+        
+        // Dismiss Checkbox HTML (nur wenn erlaubt)
+        $dismiss_checkbox_html = '';
+        if ($modal_allow_dismiss === '1') {
+            $dismiss_checkbox_html = sprintf(
+                '<label class="bam-modal-dismiss-label">
+                    <input type="checkbox" class="bam-modal-dismiss-checkbox">
+                    <span>%s</span>
+                </label>',
+                esc_html__('Nicht mehr anzeigen', 'blocksy-ad-manager')
+            );
+        }
+        
+        // HTML mit Modal-Layout
+        $output = sprintf(
+            '<div class="%s" style="%s" %s aria-hidden="true">
+                <!-- Overlay -->
+                <div class="bam-modal-overlay"></div>
+                
+                <!-- Modal Dialog -->
+                <div class="bam-modal" role="dialog" aria-modal="true" aria-labelledby="bam-modal-title-%d">
+                    <!-- Modal Header -->
+                    <div class="bam-modal-header">
+                        <button type="button" class="bam-modal-close" aria-label="%s">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Modal Body -->
+                    <div class="bam-modal-body">%s</div>
+                    
+                    <!-- Modal Footer -->
+                    <div class="bam-modal-footer">
+                        %s
+                    </div>
+                </div>
+            </div>',
+            esc_attr(implode(' ', $device_classes)),
+            $modal_style,
+            $data_attrs,
+            $ad->ID,
+            esc_attr__('Schließen', 'blocksy-ad-manager'),
+            $rendered_content,
+            $dismiss_checkbox_html
+        );
+        
+        return $output;
+    }
+    
+    /**
+     * Rendert Banner/Bild-Content für Modal Ad
+     */
+    private function render_banner_content($ad) {
+        $image_url = get_post_meta($ad->ID, '_bam_banner_image_url', true);
+        $image_id = get_post_meta($ad->ID, '_bam_banner_image_id', true);
+        $link_url = get_post_meta($ad->ID, '_bam_banner_link', true);
+        $alt_text = get_post_meta($ad->ID, '_bam_banner_alt', true);
+        $new_tab = get_post_meta($ad->ID, '_bam_banner_new_tab', true) === '1';
+        $nofollow = get_post_meta($ad->ID, '_bam_banner_nofollow', true) === '1';
+        
+        if (empty($image_url) && empty($image_id)) {
+            return '';
+        }
+        
+        if ($image_id && !$image_url) {
+            $image_url = wp_get_attachment_url($image_id);
+        }
+        
+        if (empty($image_url)) {
+            return '';
+        }
+        
+        // Bild-HTML erstellen
+        $image_html = '';
+        
+        if ($image_id) {
+            $image_html = wp_get_attachment_image($image_id, 'large', false, [
+                'class' => 'bam-modal-banner-img',
+                'alt'   => $alt_text,
+            ]);
+        } else {
+            $image_html = sprintf(
+                '<img src="%s" alt="%s" class="bam-modal-banner-img" loading="lazy">',
+                esc_url($image_url),
+                esc_attr($alt_text)
+            );
+        }
+        
+        // Ohne Link
+        if (empty($link_url)) {
+            return sprintf('<div class="bam-modal-banner">%s</div>', $image_html);
+        }
+        
+        // Mit Link
+        $link_attrs = [];
+        $link_attrs[] = sprintf('href="%s"', esc_url($link_url));
+        $link_attrs[] = 'class="bam-modal-banner-link"';
+        
+        if ($new_tab) {
+            $link_attrs[] = 'target="_blank"';
+        }
+        
+        $rel = [];
+        if ($new_tab) {
+            $rel[] = 'noopener';
+            $rel[] = 'noreferrer';
+        }
+        if ($nofollow) {
+            $rel[] = 'nofollow';
+        }
+        if (!empty($rel)) {
+            $link_attrs[] = sprintf('rel="%s"', implode(' ', $rel));
+        }
+        
+        return sprintf(
+            '<div class="bam-modal-banner"><a %s>%s</a></div>',
+            implode(' ', $link_attrs),
+            $image_html
+        );
+    }
+    
+    /**
+     * Rendert HTML/PHP-Content für Modal Ad
+     */
+    private function render_code_content($ad, $content_type) {
+        $content = get_post_meta($ad->ID, '_bam_ad_content', true);
+        
+        if (empty($content)) {
+            return '';
+        }
+        
+        if ($content_type === 'php') {
+            ob_start();
+            try {
+                eval('?>' . $content);
+            } catch (Exception $e) {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    echo '<!-- BAM Modal Error: ' . esc_html($e->getMessage()) . ' -->';
+                }
+            }
+            return ob_get_clean();
+        } else {
+            return do_shortcode($content);
+        }
     }
 }
  

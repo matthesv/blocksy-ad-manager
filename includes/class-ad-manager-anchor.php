@@ -4,6 +4,7 @@
  * 
  * @package Blocksy_Ad_Manager
  * @since 1.3.0
+ * @updated 1.4.0 - Borlabs Cookie Integration
  */
 
 if (!defined('ABSPATH')) {
@@ -42,14 +43,16 @@ class BAM_Anchor {
     }
     
     /**
-     * Rendert das JavaScript inline im Footer
+     * Rendert das JavaScript inline im Footer (mit Borlabs Cookie Integration)
      */
     public function render_inline_script() {
         ?>
         <script id="bam-anchor-script">
         (function(){
+            'use strict';
+            
             // Storage Helper
-            window.bamStorage = {
+            window.bamStorage = window.bamStorage || {
                 set: function(key, value, hours) {
                     try {
                         var expires = new Date();
@@ -80,6 +83,118 @@ class BAM_Anchor {
                 }
             };
             
+            /**
+             * Borlabs Cookie Helper
+             */
+            var BamBorlabsHelper = {
+                /**
+                 * Prüft ob Borlabs Cookie auf der Seite aktiv ist
+                 */
+                isActive: function() {
+                    return typeof window.BorlabsCookie !== 'undefined';
+                },
+                
+                /**
+                 * Prüft ob das Cookie-Banner noch angezeigt wird
+                 */
+                isBannerVisible: function() {
+                    // Methode 1: Borlabs API prüfen
+                    if (typeof window.BorlabsCookie !== 'undefined') {
+                        // Borlabs Cookie 2.x
+                        if (typeof window.BorlabsCookie.checkCookieConsent === 'function') {
+                            // Wenn keine Zustimmung gegeben wurde, ist das Banner sichtbar
+                            return !window.BorlabsCookie.checkCookieConsent('essential');
+                        }
+                        // Borlabs Cookie 3.x
+                        if (typeof window.BorlabsCookie.Consents !== 'undefined') {
+                            return !window.BorlabsCookie.Consents.hasConsent();
+                        }
+                    }
+                    
+                    // Methode 2: DOM prüfen (Fallback)
+                    var bannerSelectors = [
+                        '#BorlabsCookieBox',
+                        '.BorlabsCookie',
+                        '[data-borlabs-cookie-box]',
+                        '#CookieBoxSaveButton'
+                    ];
+                    
+                    for (var i = 0; i < bannerSelectors.length; i++) {
+                        var el = document.querySelector(bannerSelectors[i]);
+                        if (el) {
+                            var style = window.getComputedStyle(el);
+                            if (style.display !== 'none' && style.visibility !== 'hidden') {
+                                return true;
+                            }
+                        }
+                    }
+                    
+                    return false;
+                },
+                
+                /**
+                 * Wartet auf das Schließen des Cookie-Banners
+                 */
+                onBannerClosed: function(callback) {
+                    var self = this;
+                    
+                    // Wenn Borlabs nicht aktiv ist, sofort ausführen
+                    if (!this.isActive()) {
+                        callback();
+                        return;
+                    }
+                    
+                    // Wenn Banner nicht sichtbar ist, sofort ausführen
+                    if (!this.isBannerVisible()) {
+                        callback();
+                        return;
+                    }
+                    
+                    // Event-Listener für Borlabs Cookie 2.x und 3.x
+                    var eventNames = [
+                        'borlabs-cookie-consent-saved',
+                        'borlabs-cookie-consent-changed'
+                    ];
+                    
+                    var executed = false;
+                    var executeCallback = function() {
+                        if (!executed) {
+                            executed = true;
+                            callback();
+                        }
+                    };
+                    
+                    eventNames.forEach(function(eventName) {
+                        document.addEventListener(eventName, executeCallback, { once: true });
+                        window.addEventListener(eventName, executeCallback, { once: true });
+                    });
+                    
+                    // Fallback: MutationObserver für DOM-Änderungen
+                    var observer = new MutationObserver(function(mutations) {
+                        if (!self.isBannerVisible()) {
+                            observer.disconnect();
+                            executeCallback();
+                        }
+                    });
+                    
+                    observer.observe(document.body, {
+                        childList: true,
+                        subtree: true,
+                        attributes: true,
+                        attributeFilter: ['style', 'class']
+                    });
+                    
+                    // Timeout-Fallback (nach 60 Sekunden trotzdem zeigen)
+                    setTimeout(function() {
+                        observer.disconnect();
+                        executeCallback();
+                    }, 60000);
+                }
+            };
+            
+            // Global verfügbar machen
+            window.BamBorlabsHelper = BamBorlabsHelper;
+            
             // Toggle Funktion
             window.bamToggleAnchor = function(adId) {
                 var el = document.querySelector('.bam-anchor-ad-' + adId);
@@ -103,8 +218,10 @@ class BAM_Anchor {
                 bamStorage.set('bam_anchor_closed_' + adId, '1', duration || 24);
             };
             
-            // Init: Prüfe gespeicherten Status
-            document.querySelectorAll('.bam-anchor-ad').forEach(function(el) {
+            /**
+             * Anchor Ad mit Borlabs Cookie Integration anzeigen
+             */
+            function showAnchorAd(el) {
                 var adId = el.getAttribute('data-ad-id');
                 
                 // Wurde geschlossen?
@@ -117,7 +234,64 @@ class BAM_Anchor {
                 if (bamStorage.get('bam_anchor_min_' + adId)) {
                     el.classList.add('bam-minimized');
                 }
-            });
+                
+                // Sichtbar machen
+                el.style.display = '';
+                el.classList.add('bam-anchor-visible');
+            }
+            
+            /**
+             * Initialisiert Anchor Ads mit Borlabs Cookie Integration
+             */
+            function initAnchorAds() {
+                var anchorAds = document.querySelectorAll('.bam-anchor-ad');
+                
+                anchorAds.forEach(function(el) {
+                    var adId = el.getAttribute('data-ad-id');
+                    var waitForBorlabs = el.getAttribute('data-wait-borlabs') === '1';
+                    var extraDelay = parseInt(el.getAttribute('data-borlabs-extra-delay'), 10) || 0;
+                    
+                    // Wurde geschlossen? Dann gar nicht erst verarbeiten
+                    if (bamStorage.get('bam_anchor_closed_' + adId)) {
+                        el.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Initial verstecken
+                    el.style.display = 'none';
+                    
+                    if (waitForBorlabs && BamBorlabsHelper.isActive()) {
+                        // Auf Borlabs Cookie Banner warten
+                        BamBorlabsHelper.onBannerClosed(function() {
+                            // Extra Verzögerung nach Cookie-Banner
+                            if (extraDelay > 0) {
+                                setTimeout(function() {
+                                    showAnchorAd(el);
+                                }, extraDelay * 1000);
+                            } else {
+                                showAnchorAd(el);
+                            }
+                        });
+                    } else {
+                        // Ohne Borlabs: nur Extra-Delay beachten
+                        if (extraDelay > 0) {
+                            setTimeout(function() {
+                                showAnchorAd(el);
+                            }, extraDelay * 1000);
+                        } else {
+                            showAnchorAd(el);
+                        }
+                    }
+                });
+            }
+            
+            // Init on DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initAnchorAds);
+            } else {
+                initAnchorAds();
+            }
+            
         })();
         </script>
         <?php
@@ -233,7 +407,7 @@ class BAM_Anchor {
     }
     
     /**
-     * Rendert eine einzelne Anchor Ad mit Inline-Event-Handlern
+     * Rendert eine einzelne Anchor Ad mit Inline-Event-Handlern und Borlabs-Daten
      */
     private function render_single_anchor_ad($ad) {
         $content_type = get_post_meta($ad->ID, '_bam_content_type', true) ?: 'html';
@@ -242,6 +416,10 @@ class BAM_Anchor {
         $max_height_unit = get_post_meta($ad->ID, '_bam_anchor_max_height_unit', true) ?: 'px';
         $allow_close = get_post_meta($ad->ID, '_bam_anchor_allow_close', true) ?: '0';
         $close_duration = get_post_meta($ad->ID, '_bam_anchor_close_duration', true) ?: '24';
+        
+        // Borlabs Cookie Integration Settings
+        $wait_for_borlabs = get_post_meta($ad->ID, '_bam_wait_for_borlabs', true) ?: '1';
+        $borlabs_extra_delay = get_post_meta($ad->ID, '_bam_borlabs_extra_delay', true) ?: '0';
         
         if (empty($devices) || !is_array($devices)) {
             $devices = ['desktop', 'tablet', 'mobile'];
@@ -271,8 +449,9 @@ class BAM_Anchor {
             $device_classes[] = 'bam-hide-mobile';
         }
         
-        // Max Height Style
-        $max_height_style = sprintf('--bam-anchor-max-height: %s%s;', 
+        // Max Height Style (+ initial hidden)
+        $styles = sprintf(
+            '--bam-anchor-max-height: %s%s; display: none;', 
             esc_attr($max_height_value), 
             esc_attr($max_height_unit)
         );
@@ -288,9 +467,9 @@ class BAM_Anchor {
             );
         }
         
-        // HTML mit Inline-Event-Handlern
+        // HTML mit Inline-Event-Handlern und Borlabs-Data-Attributen
         $output = sprintf(
-            '<div class="%s" style="%s" data-ad-id="%d">
+            '<div class="%s" style="%s" data-ad-id="%d" data-wait-borlabs="%s" data-borlabs-extra-delay="%s">
                 <!-- Tab Bar -->
                 <div class="bam-anchor-tab">
                     <button type="button" class="bam-anchor-toggle" onclick="bamToggleAnchor(%d); return false;" title="%s">
@@ -306,8 +485,10 @@ class BAM_Anchor {
                 </div>
             </div>',
             esc_attr(implode(' ', $device_classes)),
-            $max_height_style,
+            $styles,
             $ad->ID,
+            esc_attr($wait_for_borlabs),
+            esc_attr($borlabs_extra_delay),
             $ad->ID, // für onclick
             esc_attr__('Anzeige minimieren oder maximieren', 'blocksy-ad-manager'),
             esc_html__('Minimieren', 'blocksy-ad-manager'),

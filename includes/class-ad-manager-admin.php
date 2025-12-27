@@ -200,6 +200,10 @@ class BAM_Admin {
         $modal_dismiss_duration = get_post_meta($post->ID, '_bam_modal_dismiss_duration', true) ?: '24';
         $modal_close_outside = get_post_meta($post->ID, '_bam_modal_close_outside', true) ?: '1';
         $modal_show_overlay = get_post_meta($post->ID, '_bam_modal_show_overlay', true) ?: '1';
+        
+        // Borlabs Cookie Integration Settings
+        $wait_for_borlabs = get_post_meta($post->ID, '_bam_wait_for_borlabs', true) ?: '1';
+        $borlabs_extra_delay = get_post_meta($post->ID, '_bam_borlabs_extra_delay', true) ?: '0';
         ?>
         <div class="bam-metabox-position">
             <p>
@@ -275,6 +279,29 @@ class BAM_Admin {
                         <br>
                         <span class="description"><?php _e('Nach dieser Zeit wird die Anzeige wieder eingeblendet.', 'blocksy-ad-manager'); ?></span>
                     </div>
+                    
+                    <!-- Borlabs Cookie Integration für Anchor -->
+                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e0e0e0;">
+                    
+                    <h4><?php _e('🍪 Borlabs Cookie Integration', 'blocksy-ad-manager'); ?></h4>
+                    
+                    <p>
+                        <label>
+                            <input type="checkbox" name="bam_wait_for_borlabs" value="1" <?php checked($wait_for_borlabs, '1'); ?>>
+                            <strong><?php _e('Auf Borlabs Cookie warten', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                        <br>
+                        <span class="description"><?php _e('Anzeige erscheint erst, nachdem das Borlabs Cookie Banner geschlossen wurde.', 'blocksy-ad-manager'); ?></span>
+                    </p>
+                    
+                    <p>
+                        <label><strong><?php _e('Zusätzliche Verzögerung nach Cookie-Banner:', 'blocksy-ad-manager'); ?></strong></label>
+                        <br>
+                        <input type="number" name="bam_borlabs_extra_delay" value="<?php echo esc_attr($borlabs_extra_delay); ?>" min="0" max="60" style="width:80px;">
+                        <?php _e('Sekunden', 'blocksy-ad-manager'); ?>
+                        <br>
+                        <span class="description"><?php _e('Extra Wartezeit nach dem Schließen des Cookie-Banners.', 'blocksy-ad-manager'); ?></span>
+                    </p>
                 </div>
             </div>
             
@@ -289,7 +316,7 @@ class BAM_Admin {
                         <input type="number" name="bam_modal_delay" value="<?php echo esc_attr($modal_delay); ?>" min="0" max="120" style="width:80px;">
                         <?php _e('Sekunden', 'blocksy-ad-manager'); ?>
                         <br>
-                        <span class="description"><?php _e('Nach wie vielen Sekunden soll das Modal erscheinen?', 'blocksy-ad-manager'); ?></span>
+                        <span class="description"><?php _e('Nach wie vielen Sekunden soll das Modal erscheinen? (Nach Cookie-Banner falls aktiviert)', 'blocksy-ad-manager'); ?></span>
                     </p>
                     
                     <p>
@@ -339,6 +366,29 @@ class BAM_Admin {
                         <br>
                         <span class="description"><?php _e('Nach dieser Zeit wird das Modal wieder angezeigt.', 'blocksy-ad-manager'); ?></span>
                     </div>
+                    
+                    <!-- Borlabs Cookie Integration für Modal -->
+                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e0e0e0;">
+                    
+                    <h4><?php _e('🍪 Borlabs Cookie Integration', 'blocksy-ad-manager'); ?></h4>
+                    
+                    <p>
+                        <label>
+                            <input type="checkbox" name="bam_wait_for_borlabs" value="1" <?php checked($wait_for_borlabs, '1'); ?>>
+                            <strong><?php _e('Auf Borlabs Cookie warten', 'blocksy-ad-manager'); ?></strong>
+                        </label>
+                        <br>
+                        <span class="description"><?php _e('Modal erscheint erst, nachdem das Borlabs Cookie Banner geschlossen wurde.', 'blocksy-ad-manager'); ?></span>
+                    </p>
+                    
+                    <p>
+                        <label><strong><?php _e('Zusätzliche Verzögerung nach Cookie-Banner:', 'blocksy-ad-manager'); ?></strong></label>
+                        <br>
+                        <input type="number" name="bam_borlabs_extra_delay" value="<?php echo esc_attr($borlabs_extra_delay); ?>" min="0" max="60" style="width:80px;">
+                        <?php _e('Sekunden', 'blocksy-ad-manager'); ?>
+                        <br>
+                        <span class="description"><?php _e('Extra Wartezeit nach dem Schließen des Cookie-Banners (zusätzlich zur normalen Verzögerung).', 'blocksy-ad-manager'); ?></span>
+                    </p>
                 </div>
             </div>
         </div>
@@ -547,6 +597,14 @@ class BAM_Admin {
         
         $modal_show_overlay = isset($_POST['bam_modal_show_overlay']) ? '1' : '0';
         update_post_meta($post_id, '_bam_modal_show_overlay', $modal_show_overlay);
+        
+        // Borlabs Cookie Integration Settings
+        $wait_for_borlabs = isset($_POST['bam_wait_for_borlabs']) ? '1' : '0';
+        update_post_meta($post_id, '_bam_wait_for_borlabs', $wait_for_borlabs);
+        
+        if (isset($_POST['bam_borlabs_extra_delay'])) {
+            update_post_meta($post_id, '_bam_borlabs_extra_delay', absint($_POST['bam_borlabs_extra_delay']));
+        }
         
         // Targeting
         $post_types = isset($_POST['bam_post_types']) ? array_map('sanitize_text_field', $_POST['bam_post_types']) : [];

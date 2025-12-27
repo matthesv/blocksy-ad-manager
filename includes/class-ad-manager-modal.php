@@ -4,6 +4,7 @@
  * 
  * @package Blocksy_Ad_Manager
  * @since 1.3.0
+ * @updated 1.4.0 - Borlabs Cookie Integration
  */
 
 if (!defined('ABSPATH')) {
@@ -176,6 +177,10 @@ class BAM_Modal {
         $modal_close_outside = get_post_meta($ad->ID, '_bam_modal_close_outside', true) ?: '1';
         $modal_show_overlay = get_post_meta($ad->ID, '_bam_modal_show_overlay', true) ?: '1';
         
+        // Borlabs Cookie Integration Settings
+        $wait_for_borlabs = get_post_meta($ad->ID, '_bam_wait_for_borlabs', true) ?: '1';
+        $borlabs_extra_delay = get_post_meta($ad->ID, '_bam_borlabs_extra_delay', true) ?: '0';
+        
         if (empty($devices) || !is_array($devices)) {
             $devices = ['desktop', 'tablet', 'mobile'];
         }
@@ -210,15 +215,17 @@ class BAM_Modal {
             esc_attr($modal_width_unit)
         );
         
-        // Data Attributes
+        // Data Attributes (inkl. Borlabs Cookie Integration)
         $data_attrs = sprintf(
-            'data-ad-id="%d" data-delay="%s" data-allow-dismiss="%s" data-dismiss-duration="%s" data-close-outside="%s" data-show-overlay="%s"',
+            'data-ad-id="%d" data-delay="%s" data-allow-dismiss="%s" data-dismiss-duration="%s" data-close-outside="%s" data-show-overlay="%s" data-wait-borlabs="%s" data-borlabs-extra-delay="%s"',
             $ad->ID,
             esc_attr($modal_delay),
             esc_attr($modal_allow_dismiss),
             esc_attr($modal_dismiss_duration),
             esc_attr($modal_close_outside),
-            esc_attr($modal_show_overlay)
+            esc_attr($modal_show_overlay),
+            esc_attr($wait_for_borlabs),
+            esc_attr($borlabs_extra_delay)
         );
         
         // Dismiss Checkbox HTML (nur wenn erlaubt)
